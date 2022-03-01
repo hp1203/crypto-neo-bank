@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    html {
+      font-family: Proxima Nova, system-ui, sans-serif;
+    }
+  }
+@layer components {
+    .btn-primary {
+      @apply inline-flex text-white bg-violet-500 border-0 py-2 px-6 focus:outline-none hover:bg-violet-600 text-lg rounded-lg justify-center items-center;
+    }
+    .nav-link {
+        @apply mr-5 text-gray-500 font-normal hover:text-violet-600 cursor-pointer
+    }
+  }
