@@ -1,8 +1,15 @@
 import Image from "next/image";
-import React from "react";
+import React, {useContext} from "react";
 import { IoWallet } from "react-icons/io5";
 import { FaEthereum } from "react-icons/fa";
+import { WalletContext } from "../context/WalletContext";
+import ProfileDropdown from "./ProfileDropdown";
+import { AuthContext } from "../context/AuthContext";
+import Account from "./Account";
+
 const Header = () => {
+  // const { connectWallet, walletConnected } = useContext(WalletContext);
+  const { login, user, account, logOut } = useContext(AuthContext)
   return (
     <header className="text-gray-600 body-font border-b border-gray-100">
       <div className="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center">
@@ -13,15 +20,21 @@ const Header = () => {
           <span className="ml-3 text-2xl font-mono font-bold">Cryptoneo</span>
         </a>
         <nav className="md:ml-auto flex flex-wrap items-center text-base justify-center">
-          <a className="nav-link">First Link</a>
-          <a className="nav-link">Second Link</a>
-          <a className="nav-link">Third Link</a>
-          <a className="nav-link">Fourth Link</a>
+          <a className="nav-link">Who we are</a>
+          <a className="nav-link">Payments</a>
+          <a className="nav-link" href="deposit">Deposit</a>
         </nav>
-        <button className="btn-primary text-base">
-          <IoWallet className="mr-2" />
-          <span>Connect Wallet</span>
-        </button>
+        <Account/>
+        {/* {
+          user ? (
+            <ProfileDropdown user={user} account={account} logout={logOut}/>
+          ) : (
+          <button className="btn-primary text-base" onClick={login}>
+            <IoWallet className="mr-2" />
+            <span>Connect Wallet</span>
+          </button>
+          )
+        } */}
       </div>
     </header>
   );

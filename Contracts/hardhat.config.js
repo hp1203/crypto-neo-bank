@@ -1,5 +1,6 @@
 require("@nomiclabs/hardhat-waffle");
 require('@openzeppelin/hardhat-upgrades');
+require('hardhat-contract-sizer');
 require("dotenv").config();
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -23,6 +24,10 @@ module.exports = {
       accounts: [process.env.PRIVATE_KEY]
     },
     rinkeby: {
+      url: process.env.STAGING_ALCHEMY_KEY,
+      accounts: [process.env.PRIVATE_KEY],
+    },
+    ropsten: {
       url: process.env.STAGING_ALCHEMY_KEY,
       accounts: [process.env.PRIVATE_KEY],
     },
