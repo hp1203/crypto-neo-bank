@@ -17,12 +17,15 @@ import { cryptos } from "../../constants/cryptos";
 import ListItem from "../../components/UI/ListItem";
 import Account from "../../components/Account";
 import CreateAccount from "../../components/CreateAccount";
+import AccountSelection from "../../components/AccountSelection";
+import { AccountBalances } from "../../components/AccountBalances";
 
 const Dashboard = () => {
+
   return (
     <AppLayout>
       <PageHeader title="Your Accounts">
-        <Button title="Add New" primary />
+        <AccountSelection/>
         <CreateAccount/>
       </PageHeader>
 
@@ -115,22 +118,7 @@ const Dashboard = () => {
               </a>
             </TableFooter>
           </Card>
-          <Card>
-            <div className="flex mb-4 items-center justify-between">
-              <p className="font-semibold text-lg">Deposited Assets</p>
-              <FaArrowRight className="text-sm items-center font-base tracking-widest text-violet-500" />
-            </div>
-            {
-              cryptos.map((crypto, index) => (
-                <ListItem image={crypto.icon} title={crypto.name} subTitle={crypto.symbol} key={index} left={(
-                  <div className="flex flex-col items-end">
-                    <p className=" font-medium">{crypto.amount} {crypto.symbol}</p>
-                    <p className="text-xs text-green-600">APY: {crypto.apy} {crypto.symbol}</p>
-                  </div>
-                )}/>
-              ))
-            }
-          </Card>
+          <AccountBalances/>
         </Grid>
       </HStack>
     </AppLayout>
