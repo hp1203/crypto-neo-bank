@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import AppLayout from "../../components/AppLayout";
 import PageHeader from "../../components/dashboard/PageHeader";
 import Button from "../../components/UI/Button";
@@ -19,9 +19,11 @@ import Account from "../../components/Account";
 import CreateAccount from "../../components/CreateAccount";
 import AccountSelection from "../../components/AccountSelection";
 import { AccountBalances } from "../../components/AccountBalances";
+import { WalletContext } from "../../context/WalletContext";
+import { AuthContext } from "../../context/AuthContext";
 
 const Dashboard = () => {
-
+  const { account } = useContext(AuthContext)
   return (
     <AppLayout>
       <PageHeader title="Your Accounts">

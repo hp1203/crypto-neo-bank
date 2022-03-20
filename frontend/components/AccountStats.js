@@ -5,8 +5,11 @@ import Card from "./UI/Card";
 import { AccountContext } from "../context/AccountContext";
 import ShowMoreText from "react-show-more-text";
 import Image from "next/image";
+import DepositModal from "./DepositModal";
+import { AuthContext } from "../context/AuthContext";
 export const AccountStats = (props) => {
   const { selectedAccount, getIpfsData } = useContext(AccountContext)
+  const { account } = useContext(AuthContext)
   const [metadata, setMetadata] = useState({});
   useEffect(() => {
     if(selectedAccount){
@@ -70,7 +73,8 @@ export const AccountStats = (props) => {
         <div className="flex space-x-2 items-center justify-between">
           <div className="flex space-x-2 items-center">
           <Button title="Transfer Now" primary/>
-          <Button title="Deposit"/>
+          {/* <Button title="Deposit"/> */}
+          <DepositModal address={account} accountNumber={selectedAccount.accountNumber}/>
           <Button title="Withdraw"/>
           </div>
           {

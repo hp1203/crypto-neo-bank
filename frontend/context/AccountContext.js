@@ -23,7 +23,7 @@ export const AccountProvider = ({ children }) => {
   const [accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [Balances, setBalances] = useState([]);
+  var [Balances, setBalances] = useState(cryptos);
 
   // const [ provider, loadWeb3Modal ] = useWeb3Modal();
   const { Moralis, Util } = useMoralis();
@@ -63,14 +63,17 @@ export const AccountProvider = ({ children }) => {
       const ethBalance = await neoBankContract.getEthBalance(selectedAccount.accountNumber.toString());
       const ethBalanceWithInterest = await neoBankContract.getEthBalanceWithInterest(selectedAccount.accountNumber.toString());
       console.log("EthBalance", ethBalance.toString())
-      
-      setBalances([...Balances, {
-        name: cryptos[0].name,
-        symbol: cryptos[0].symbol,
-        icon: cryptos[0].icon,
-        amount: ethers.utils.formatEther(ethBalance.toString()),
-        apy: ethers.utils.formatEther(ethBalanceWithInterest.toString() - ethBalance.toString())
-      }])
+      const index = Balances.findIndex(x => x.symbol ==="ETH");
+      let balances = Balances;
+      balances[index] = {
+          name: cryptos[0].name,
+          symbol: cryptos[0].symbol,
+          icon: cryptos[0].icon,
+          amount: ethers.utils.formatEther(ethBalance.toString()),
+          apy: ethers.utils.formatEther(ethBalanceWithInterest.toString() - ethBalance.toString())
+        }
+      console.log("Index", balances)
+      setBalances(balances)
       
       // }
       // loadWeb3Modal()
@@ -79,10 +82,71 @@ export const AccountProvider = ({ children }) => {
     }
   }
 
+  const depositEthToAccount = async (address, accountNumber, amount) => {
+    try {
+      const provider = await Moralis.enableWeb3();
+      // if(provider) {
+      // const provider = new ethers.providers.Web3Provider(web3Provider);
+      const signer = provider.getSigner();
+      // const provider = getProviderOrSigner();
+      // console.log("signer", walletConnected)
+      const neoBankContract = new ethers.Contract(
+        NEOBANK_ADDRESS,
+        NeobankAbi.abi,
+        signer
+      );
+
+      const txHash = await neoBankContract.connect(signer).depositIntoAccount(address.toString(), accountNumber.toString(), ethers.utils.parseEther(amount), {value: ethers.utils.parseEther(amount)})
+      setIsLoading(true);
+      console.log(`Loading - ${txHash.hash}`);
+      await txHash.wait();
+      setIsLoading(false);
+      console.log(`Success - ${txHash.hash}`);
+
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  const getERC20Balance = async () => {
+    try {
+      const provider = await Moralis.enableWeb3();
+      // if(provider) {
+      // const provider = new ethers.providers.Web3Provider(web3Provider);
+      const signer = provider.getSigner();
+      // const provider = getProviderOrSigner();
+      // console.log("signer", walletConnected)
+      const neoBankContract = new ethers.Contract(
+        NEOBANK_ADDRESS,
+        NeobankAbi.abi,
+        signer
+      );
+      let balances = Balances;
+      
+      for(var i = 1; i < Balances.length(); i++){
+        const balance = await neoBankContract.getERC20Balance(selectedAccount.accountNumber.toString(), cryptos[i].address);
+        const balanceWithInterest = await neoBankContract.getERC20BalanceWithInterest(selectedAccount.accountNumber.toString(), cryptos[i].address);
+        // console.log("EthBalance", ethBalance.toString())
+        balances[i] = {
+          name: cryptos[i].name,
+          symbol: cryptos[i].symbol,
+          icon: cryptos[i].icon,
+          amount: ethers.utils.formatEther(balance.toString()),
+          apy: ethers.utils.formatEther(balanceWithInterest.toString() - balance.toString())
+        }
+      }
+      setBalances(balances)
+      // console.log("Index", index)
+
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   useEffect(() => {
     if(selectedAccount){
       getEthBalance();
-
+      getERC20Balance();
     }
   },selectedAccount)
 
@@ -156,7 +220,8 @@ export const AccountProvider = ({ children }) => {
         setSelectedAccount,
         createAccount,
         getIpfsData,
-        Balances
+        Balances,
+        depositEthToAccount
       }}
     >
       {children}

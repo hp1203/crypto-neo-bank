@@ -22,8 +22,8 @@ export const AccountBalances = (props) => {
             Balances.map((crypto, index) => (
                 <ListItem image={crypto.icon} title={crypto.name} subTitle={crypto.symbol} key={index} left={(
                   <div className="flex flex-col items-end">
-                    <p className=" font-medium">{crypto.amount} {crypto.symbol}</p>
-                    <p className="text-xs text-green-600">APY: {crypto.apy} {crypto.symbol}</p>
+                    <p className=" font-medium">{parseFloat(crypto.amount).toFixed(2)} {crypto.symbol}</p>
+                    <p className="text-xs text-green-600">APY: {parseFloat(crypto.apy).toFixed(2)} {crypto.symbol}</p>
                   </div>
                 )}/>
               ))
