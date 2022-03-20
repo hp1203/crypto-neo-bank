@@ -16,7 +16,7 @@ import CryptoDropdown from "./CryptoDropdown";
 
 const DepositModal = ({ address, accountNumber }) => {
   const { isAuthenticated, Moralis } = useMoralis();
-  const { createAccount, isLoading, depositEthToAccount } = useContext(AccountContext);
+  const { createAccount, isLoading, depositEthToAccount, depositERC20ToAccount } = useContext(AccountContext);
   const [selected, setSelected] = useState(cryptos[0]);
 
   let [isOpen, setIsOpen] = useState(false);
@@ -44,7 +44,11 @@ const DepositModal = ({ address, accountNumber }) => {
     e.preventDefault();
     console.log("Form:", form);
     console.log("Selected:", selected);
-    depositEthToAccount(form.address, form.accountNumber, form.amount);
+    if(selected.symbol == "ETH"){
+      depositEthToAccount(form.address, form.accountNumber, form.amount);
+    } else {
+      depositERC20ToAccount(form.address, form.accountNumber, form.amount, selected)
+    }
   };
 
   if (isAuthenticated) {

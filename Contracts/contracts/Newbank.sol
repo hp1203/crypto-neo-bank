@@ -245,8 +245,8 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
         CErc20 cToken = CErc20(getRelaventCToken(currency));
         // IERC20 erc20 = IERC20(currency);
 
-        require(msg.value >= _amount, "Amount sent is less.");
-        require(msg.value >= 0.01 ether, "Minimum deposit amount is 0.01 Eth");
+        // require(msg.value >= _amount, "Amount sent is less.");
+        // require(msg.value >= 0.01 ether, "Minimum deposit amount is 0.01 Eth");
 
         uint256 cTokenBeforeMint = cToken.balanceOf(address(this));
         // send ethers to mint()

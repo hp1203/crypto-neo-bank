@@ -10,7 +10,7 @@ export const AccountBalances = (props) => {
   const { selectedAccount, Balances  } = useContext(AccountContext)
   
   if(!selectedAccount){
-    return null;
+    return null
   }
   return (
     <Card {...props}>

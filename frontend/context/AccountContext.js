@@ -82,6 +82,36 @@ export const AccountProvider = ({ children }) => {
     }
   }
 
+  const depositERC20ToAccount = async (address, accountNumber, amount, token) => {
+    try {
+      const provider = await Moralis.enableWeb3();
+      // if(provider) {
+      // const provider = new ethers.providers.Web3Provider(web3Provider);
+      const signer = provider.getSigner();
+      const ercToken = new ethers.Contract(token.address, token.abi, signer);
+      console.log("Contract", ercToken)
+      const tx = await ercToken.approve(NEOBANK_ADDRESS, ethers.utils.parseEther(amount));
+      tx.wait();
+      // const provider = getProviderOrSigner();
+      // console.log("signer", walletConnected)
+      const neoBankContract = new ethers.Contract(
+        NEOBANK_ADDRESS,
+        NeobankAbi.abi,
+        signer
+      );
+
+      const txHash = await neoBankContract.depositERC20IntoAccount(address.toString(), accountNumber.toString(), ethers.utils.parseEther(amount), token.address)
+      setIsLoading(true);
+      console.log(`Loading - ${txHash.hash}`);
+      await txHash.wait();
+      setIsLoading(false);
+      console.log(`Success - ${txHash.hash}`);
+
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   const depositEthToAccount = async (address, accountNumber, amount) => {
     try {
       const provider = await Moralis.enableWeb3();
@@ -221,7 +251,8 @@ export const AccountProvider = ({ children }) => {
         createAccount,
         getIpfsData,
         Balances,
-        depositEthToAccount
+        depositEthToAccount,
+        depositERC20ToAccount
       }}
     >
       {children}
