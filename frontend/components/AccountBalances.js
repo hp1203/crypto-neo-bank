@@ -7,8 +7,20 @@ import ShowMoreText from "react-show-more-text";
 import Image from "next/image";
 import ListItem from "./UI/ListItem";
 export const AccountBalances = (props) => {
-  const { selectedAccount, Balances  } = useContext(AccountContext)
-  
+  const { selectedAccount, Balances,getEthBalance,getERC20Balance  } = useContext(AccountContext)
+  useEffect(() => {
+    if(selectedAccount){
+      getEthBalance();
+      getERC20Balance();
+    }
+  },[])
+ 
+  useEffect(() => {
+    if(selectedAccount){
+      getEthBalance();
+      getERC20Balance();
+    }
+  },[selectedAccount])
   if(!selectedAccount){
     return null
   }

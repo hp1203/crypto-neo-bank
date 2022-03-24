@@ -10,38 +10,38 @@ const data = [
   {
     title: 'Dashboard',
     icon: <HomeIcon />,
-    link: '/',
+    link: '/dashboard',
   },
   {
     title: 'Payments',
     icon: <BillsIcon />,
-    link: '/admin/bills',
+    link: '/payments',
   },
   {
     title: 'Transactions',
     icon: <ApplicationsIcon />,
-    link: '/admin/applications',
+    link: '/transactions',
   },
   {
-    title: 'Investment',
+    title: 'Investments',
     icon: <MonitoringIcon />,
-    link: '/admin/monitoring',
+    link: '/investments',
   },
-  {
-    title: 'Contacts',
-    icon: <DemographicsIcon />,
-    link: '/admin/demographics',
-  },
-  {
-    title: 'Analytics',
-    icon: <AnalyticsIcon />,
-    link: '/admin/analytics',
-  },
-  {
-    title: 'Documentation',
-    icon: <DocumentationIcon />,
-    link: '/admin/documentation',
-  },
+  // {
+  //   title: 'Contacts',
+  //   icon: <DemographicsIcon />,
+  //   link: '/admin/demographics',
+  // },
+  // {
+  //   title: 'Analytics',
+  //   icon: <AnalyticsIcon />,
+  //   link: '/admin/analytics',
+  // },
+  // {
+  //   title: 'Documentation',
+  //   icon: <DocumentationIcon />,
+  //   link: '/admin/documentation',
+  // },
 ];
 
 export default data;

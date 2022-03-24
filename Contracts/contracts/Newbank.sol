@@ -48,8 +48,23 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
         uint256 _amount,
         uint256 _timestamp
     );
+    event EthWithdrawMade(
+        address _withdrawer,
+        address _owner,
+        uint256 _accountNumber,
+        uint256 _amount,
+        uint256 _timestamp
+    );
     event Erc20DepositMade(
         address _depositor,
+        address _owner,
+        uint256 _accountNumber,
+        address currency,
+        uint256 _amount,
+        uint256 _timestamp
+    );
+    event Erc20WithdrawMade(
+        address _withdrawer,
         address _owner,
         uint256 _accountNumber,
         address currency,
@@ -172,28 +187,28 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
     /**
      *@dev Approve the swap of ERC20 tokens
      */
-    function _approveApprovedTokensToCompound(
-        address erc20Token
-    ) internal returns (uint256) {
-        IERC20 erc20 = IERC20(erc20Token);
-        // Get allowed amount
-        uint256 approvedAmountOfERC20Tokens = erc20.allowance(
-            msg.sender,
-            address(this)
-        );
+    // function _approveApprovedTokensToCompound(
+    //     address erc20Token
+    // ) internal returns (uint256) {
+    //     IERC20 erc20 = IERC20(erc20Token);
+    //     // Get allowed amount
+    //     uint256 approvedAmountOfERC20Tokens = erc20.allowance(
+    //         msg.sender,
+    //         address(this)
+    //     );
 
-        // Transfer ERC20 to Contract
-        erc20.transferFrom(
-            msg.sender,
-            address(this),
-            approvedAmountOfERC20Tokens
-        );
+    //     // Transfer ERC20 to Contract
+    //     erc20.transferFrom(
+    //         msg.sender,
+    //         address(this),
+    //         approvedAmountOfERC20Tokens
+    //     );
 
-        // Approve the amount of tokens to compound
-        erc20.approve(getRelaventCToken(erc20Token), approvedAmountOfERC20Tokens);
+    //     // Approve the amount of tokens to compound
+    //     erc20.approve(getRelaventCToken(erc20Token), approvedAmountOfERC20Tokens);
 
-        return approvedAmountOfERC20Tokens;
-    }
+    //     return approvedAmountOfERC20Tokens;
+    // }
 
     function depositIntoAccount(
         address _owner,
@@ -239,30 +254,32 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
     function depositERC20IntoAccount(
         address _owner,
         uint256 _accountNumber,
-        uint256 _amount,
+        uint256 amount,
         address currency
     ) external payable {
         CErc20 cToken = CErc20(getRelaventCToken(currency));
-        // IERC20 erc20 = IERC20(currency);
+        IERC20 erc20 = IERC20(currency);
 
         // require(msg.value >= _amount, "Amount sent is less.");
         // require(msg.value >= 0.01 ether, "Minimum deposit amount is 0.01 Eth");
 
         uint256 cTokenBeforeMint = cToken.balanceOf(address(this));
         // send ethers to mint()
-        uint256 approvedAmount = _approveApprovedTokensToCompound(
-            currency
-        );
+        // uint256 approvedAmount = _approveApprovedTokensToCompound(
+        //     currency
+        // );
+         // Approve the amount of tokens to compound
+        erc20.approve(getRelaventCToken(currency), amount);
         // // Approve the amount of tokens to Uniswap router
         // erc20.approve(cERC20, msg.value);
 
-        cToken.mint(approvedAmount);
+        cToken.mint(amount);
 
         uint256 cTokenAfterMint = cToken.balanceOf(address(this));
 
         uint256 cTokenUser = cTokenAfterMint - cTokenBeforeMint;
 
-        accountERC20Balance[_accountNumber][currency] += approvedAmount;
+        accountERC20Balance[_accountNumber][currency] += amount;
         accountCompoundBalance[_accountNumber][getRelaventCToken(currency)] += cTokenUser;
 
         // userAccounts[_owner][index].balance += cEthUser;
@@ -275,7 +292,7 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
             _owner,
             _accountNumber,
             currency,
-            approvedAmount,
+            amount,
             block.timestamp
         );
     }
@@ -283,7 +300,7 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
     /**
      * @dev Withdraws all the Ether
      */
-    function withdrawMaxEth(uint256 _accountNumber) public payable {
+    function withdrawMaxEth(uint256 _accountNumber) public nonReentrant {
         uint256 index = 0;
         bool exists = false;
         for (uint256 i = 0; i < userAccounts[msg.sender].length; i++) {
@@ -292,7 +309,7 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
                 exists = true;
             }
         }
-        require(!exists, "Account not found.");
+        require(exists, "Account not found.");
         address payable transferTo = payable(msg.sender); // get payable to transfer towards
         ceth.redeem(accountCethBalance[_accountNumber]); // Redeem that cETH
         uint256 amountToWithdraw = getEthBalanceWithInterest(_accountNumber); // Avalaible amount of $ that can be Withdrawn
@@ -300,15 +317,20 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
         accountCethBalance[_accountNumber] = 0;
         accountEthBalance[_accountNumber] = 0;
         transferTo.transfer(amountToWithdraw);
+        emit EthWithdrawMade(
+            msg.sender,
+            msg.sender,
+            _accountNumber,
+            amountToWithdraw,
+            block.timestamp
+        );
     }
 
     /**
      * @dev Withdraw a specific amount of Ether
      */
     function withdrawAmountEth(uint256 amountRequested, uint256 _accountNumber)
-        public
-        payable
-        nonReentrant
+        public nonReentrant
     {
         uint256 index = 0;
         bool exists = false;
@@ -333,6 +355,13 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
         accountCethBalance[_accountNumber] -= cEthWithdrawn;
         accountEthBalance[_accountNumber] -= amountRequested;
         transferTo.transfer(amountRequested);
+        emit EthWithdrawMade(
+            msg.sender,
+            msg.sender,
+            _accountNumber,
+            amountRequested,
+            block.timestamp
+        );
 
     }
 
@@ -341,7 +370,6 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
      */
     function withdrawAmountErc20(uint256 amountRequested, uint256 _accountNumber, address _erc20Token)
         public
-        payable
         nonReentrant
     {
         uint256 index = 0;
@@ -368,7 +396,14 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
         accountERC20Balance[_accountNumber][_erc20Token] -= amountRequested;
         // transferTo.transfer(amountRequested);
         erc20Token.transfer(transferTo, amountRequested);
-        
+        emit Erc20DepositMade(
+            msg.sender,
+            msg.sender,
+            _accountNumber,
+            _erc20Token,
+            amountRequested,
+            block.timestamp
+        );
     }
 
     /**

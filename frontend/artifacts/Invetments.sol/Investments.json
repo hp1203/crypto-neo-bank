@@ -1,0 +1,10 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "Investments",
+  "sourceName": "contracts/Invetments.sol",
+  "abi": [],
+  "bytecode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea26469706673582212206837778ba81bff822004b6ddc78aac78c756bf2adfd55c5964feee5b7aa16fd664736f6c63430008040033",
+  "deployedBytecode": "0x6080604052600080fdfea26469706673582212206837778ba81bff822004b6ddc78aac78c756bf2adfd55c5964feee5b7aa16fd664736f6c63430008040033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

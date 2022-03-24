@@ -7,6 +7,7 @@ import ShowMoreText from "react-show-more-text";
 import Image from "next/image";
 import DepositModal from "./DepositModal";
 import { AuthContext } from "../context/AuthContext";
+import WithdrawModal from "./WithdrawModal";
 export const AccountStats = (props) => {
   const { selectedAccount, getIpfsData } = useContext(AccountContext)
   const { account } = useContext(AuthContext)
@@ -72,10 +73,10 @@ export const AccountStats = (props) => {
         </div>
         <div className="flex space-x-2 items-center justify-between">
           <div className="flex space-x-2 items-center">
-          <Button title="Transfer Now" primary/>
+          {/* <Button title="Transfer Now" primary/> */}
           {/* <Button title="Deposit"/> */}
           <DepositModal address={account} accountNumber={selectedAccount.accountNumber}/>
-          <Button title="Withdraw"/>
+          <WithdrawModal address={account} accountNumber={selectedAccount.accountNumber}/>
           </div>
           {
               metadata.image &&

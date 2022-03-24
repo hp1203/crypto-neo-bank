@@ -59,7 +59,8 @@ const DepositModal = ({ address, accountNumber }) => {
           <span>Add New</span>
         </button> */}
         <Button
-          title="Deposit"
+          title="Deposit Now"
+          primary
           onClick={openModal}
           //   leftIcon={<FaPlusCircle className="mr-1" />}
         />
@@ -113,7 +114,10 @@ const DepositModal = ({ address, accountNumber }) => {
                   </Dialog.Title>
                   <div className="mt-2 ">
                     <form onSubmit={handleFormSubmit}>
+                      <div className="flex flex-col bg-gray-50 rounded-lg">
+                      <p className="text-sm ml-2 mt-2 uppercase text-gray-500">Deposit</p>
                       <div className="flex items-center bg-gray-50 rounded-lg py-8 px-2 mb-3">
+
                         <input
                           className="appearance-none text-4xl text-right bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none focus:ring-0"
                           type="text"
@@ -129,6 +133,7 @@ const DepositModal = ({ address, accountNumber }) => {
                         <p className="flex-shrink-0 text-4xl border-transparent border-4 font-thin text-gray-500 hover:text-teal-800 py-1 px-2 rounded">
                           {selected.symbol}
                         </p>
+                      </div>
                       </div>
                       <div className="w-full flex text-gray-400 p-1 mb-4 justify-between items-center">
                         <span>$ 2499</span>

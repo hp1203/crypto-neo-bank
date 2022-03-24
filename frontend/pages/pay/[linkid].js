@@ -5,20 +5,24 @@ import React from "react";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
 
-import { Fragment, useState } from "react";
+import { Fragment, useState, useEffect, useContext } from "react";
 import { Combobox, Transition } from "@headlessui/react";
 
 import { HiSelector } from "react-icons/hi";
 import { BiCheck, BiListCheck } from "react-icons/bi";
 import { FaDiscord, FaFacebook, FaGithub, FaTwitter } from "react-icons/fa";
-
+import { useMoralis } from "react-moralis";
+import { PAYMENT_ADDRESS } from "../../constants";
+import PaymentABI from "../../artifacts/Payments.sol/Payments.json";
+import { createClient } from "urql";
+import { AccountContext } from "../../context/AccountContext";
 const people = [
   { id: 1, name: "ETH", icon: "https://downloads.coindesk.com/arc-hosted-images/eth.png" },
-  { id: 2, name: "LINK", icon:"https://etherscan.io/token/images/chainlinktoken_32.png?v=6" },
-  { id: 3, name: "USDT", icon:"https://etherscan.io/token/images/tether_32.png" },
-  { id: 4, name: "DAI", icon:"https://etherscan.io/token/images/MCDDai_32.png" },
-  { id: 5, name: "MATIC", icon:"https://etherscan.io/token/images/matic-polygon_32.png" },
-  { id: 6, name: "UNI", icon:"https://etherscan.io/token/images/uniswap_32.png" },
+  // { id: 2, name: "LINK", icon:"https://etherscan.io/token/images/chainlinktoken_32.png?v=6" },
+  // { id: 3, name: "USDT", icon:"https://etherscan.io/token/images/tether_32.png" },
+  // { id: 4, name: "DAI", icon:"https://etherscan.io/token/images/MCDDai_32.png" },
+  // { id: 5, name: "MATIC", icon:"https://etherscan.io/token/images/matic-polygon_32.png" },
+  // { id: 6, name: "UNI", icon:"https://etherscan.io/token/images/uniswap_32.png" },
 ];
 
 const CurrencyDropdown = () => {
@@ -108,9 +112,78 @@ const CurrencyDropdown = () => {
   );
 };
 
+// useEffect(() => {
+//   const getPaymentLinkDetails = async () => {
+//     try {
+//       const provider = await Moralis.enableWeb3();
+//         // if(provider) {
+//         // const provider = new ethers.providers.Web3Provider(web3Provider);
+//         const signer = provider.getSigner();
+//         // const provider = getProviderOrSigner();
+//         // console.log("signer", walletConnected)
+//         const paymentContract = new ethers.Contract(
+//           PAYMENT_ADDRESS,
+//           PaymentABI.abi,
+//           signer
+//         );
+  
+//         setPaymentLinkDetails(await paymentContract.getPaymentLink());
+//     } catch(err) {
+//       console.log(err)
+//     }
+//   }
+//   getPaymentLinkDetails()
+// },[])
+
 const Pay = () => {
   const router = useRouter();
   const { linkid } = router.query;
+  console.log("id",linkid)
+  const [paymentLinkDetails, setPaymentLinkDetails] = useState(null)
+  const [metadata, setMetadata] = useState(null)
+  const { Moralis } = useMoralis()
+  const { getIpfsData } = useContext(AccountContext)
+
+  const APIURL = "https://api.thegraph.com/subgraphs/name/hp1203/cryptoneo";
+
+  const query = `
+    query {
+        paymentLinks (
+            where: { url: "${linkid}" }
+        ) {
+          id
+          owner
+          paymentLinkId
+          url
+          type
+          receiver
+          metadata
+          timestamp
+        }
+    }
+  `;
+  console.log("query", query)
+  const client = createClient({
+      url: APIURL
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+        const response = await client.query(query).toPromise()
+        console.log("Response", response);
+        if(response.data){
+
+          setPaymentLinkDetails(response.data.paymentLinks[0])
+          console.log(response.data.paymentLinks[0].metadata)
+          getIpfsData(response.data.paymentLinks[0].metadata).then(data => {
+            console.log("Metadata", data)  
+            setMetadata(data)
+          }); 
+        }
+    }
+    fetchData()
+  },[linkid])
+
   return (
     <div>
       <Head>
@@ -120,6 +193,8 @@ const Pay = () => {
       </Head>
 
       <Header />
+      {
+        metadata &&
       <main
         className="min-h-screen flex justify-center items-start py-24
         bg-gray-50 px-8"
@@ -142,20 +217,20 @@ const Pay = () => {
             />
               <div className="flex flex-col">
                 <h1 className="font-bold text-xl text-gray-800 mb-1">
-                  Himanshu Purohit
+                  {metadata.name}
                 </h1>
                 {/* <div className="w-full flex-none mt-2 order-1 text-3xl font-bold text-violet-500">
                   $39.00
                 </div> */}
                 <div className="text-sm font-base text-slate-400 mb-2">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                {metadata.description}
                 </div>
-                <div className="flex space-x-2 text-gray-500">
+                {/* <div className="flex space-x-2 text-gray-500">
                   <FaFacebook className="w-5 h-5 hover:text-violet-500 cursor-pointer"/>
                   <FaTwitter className="w-5 h-5 hover:text-violet-500 cursor-pointer"/>
                   <FaGithub className="w-5 h-5 hover:text-violet-500 cursor-pointer"/>
                   <FaDiscord className="w-5 h-5 hover:text-violet-500 cursor-pointer"/>
-                </div>
+                </div> */}
               </div>
             </div>
 
@@ -180,6 +255,7 @@ const Pay = () => {
           </form>
         </div>
       </main>
+      }
       <Footer />
     </div>
   );

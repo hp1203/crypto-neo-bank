@@ -17,15 +17,15 @@ contract Payments is ReentrancyGuard {
     using Counters for Counters.Counter;
     uint256 public fee = 5; // amount * 5 / 1000
     // Where to send Payments ethier Neobank Account or Wallet
-    enum PaymentLinkType {
-        ACCOUNT,
-        WALLET
-    }
+    // enum PaymentLinkType {
+    //     ACCOUNT,
+    //     WALLET
+    // }
 
-    enum PaymentMode {
-        LINK,
-        DEPOSIT
-    }
+    // enum PaymentMode {
+    //     LINK,
+    //     DEPOSIT
+    // }
 
     Counters.Counter paymentLinkIds;
     Counters.Counter paymentIds;
@@ -33,7 +33,7 @@ contract Payments is ReentrancyGuard {
     struct PaymentLink {
         uint256 paymentLinkId;
         string _url;
-        PaymentLinkType _type;
+        string _type; // ACCOUNT, WALLET
         address payable receiver;
         uint256 account;
         string metadata;
@@ -41,7 +41,7 @@ contract Payments is ReentrancyGuard {
 
     struct Payment {
         uint256 paymentId;
-        PaymentMode mode;
+        string mode; // LINK, DEPOSIT
         address sender;
         address receiver;
         uint256 account;
@@ -57,7 +57,7 @@ contract Payments is ReentrancyGuard {
 
     event PaymentMade(
         uint256 paymentId,
-        PaymentMode mode,
+        string mode,
         address sender,
         address receiver,
         uint256 account,
@@ -68,10 +68,12 @@ contract Payments is ReentrancyGuard {
     );
 
     event PaymentLinkCreated(
+        address _owner,
         uint256 paymentLinkId,
         string _url,
-        PaymentLinkType _type,
+        string _type,
         address receiver,
+        uint256 account,
         string metadata
     );
 
@@ -81,7 +83,7 @@ contract Payments is ReentrancyGuard {
 
     function createPaymentLink(
         string memory url,
-        PaymentLinkType _type,
+        string memory _type,
         address receiver,
         uint256 account,
         string memory metadata
@@ -98,7 +100,7 @@ contract Payments is ReentrancyGuard {
             metadata
         );
         userPaymentLinks[msg.sender] = currentId;
-        emit PaymentLinkCreated(currentId, url, _type, receiver, metadata);
+        emit PaymentLinkCreated(msg.sender, currentId, url, _type, receiver, account, metadata);
     }
 
     function getPaymentLink(uint256 paymentLink)
@@ -117,7 +119,7 @@ contract Payments is ReentrancyGuard {
         uint256 txFee = calculateFee(msg.value);
         uint256 sendingAmount = msg.value - txFee;
 
-        if (paymentLink._type == PaymentLinkType.WALLET) {
+        if (keccak256(bytes(paymentLink._type)) == keccak256(bytes('WALLET'))) {
             transferTo.transfer(sendingAmount);
         } else {
             neobank.depositIntoAccount{value: sendingAmount}(
@@ -129,7 +131,7 @@ contract Payments is ReentrancyGuard {
 
         payments[currentId] = Payment(
             currentId,
-            PaymentMode.LINK,
+            'LINK',
             msg.sender,
             paymentLink.receiver,
             paymentLink.account,
@@ -140,7 +142,7 @@ contract Payments is ReentrancyGuard {
         );
         emit PaymentMade(
             currentId,
-            PaymentMode.LINK,
+            'LINK',
             msg.sender,
             paymentLink.receiver,
             paymentLink.account,
@@ -164,7 +166,7 @@ contract Payments is ReentrancyGuard {
         uint256 txFee = calculateFee(msg.value);
         uint256 sendingAmount = msg.value - txFee;
 
-        if (paymentLink._type == PaymentLinkType.WALLET) {
+        if (keccak256(bytes(paymentLink._type)) == keccak256(bytes('WALLET'))) {
             // erc20.transfer(sendingAmount);
             erc20.transfer(transferTo, sendingAmount);
         } else {
@@ -178,7 +180,7 @@ contract Payments is ReentrancyGuard {
         transferTo.transfer(sendingAmount);
         payments[currentId] = Payment(
             currentId,
-            PaymentMode.LINK,
+            'LINK',
             msg.sender,
             paymentLink.receiver,
             paymentLink.account,
@@ -189,7 +191,7 @@ contract Payments is ReentrancyGuard {
         );
         emit PaymentMade(
             currentId,
-            PaymentMode.LINK,
+            'LINK',
             msg.sender,
             paymentLink.receiver,
             paymentLink.account,

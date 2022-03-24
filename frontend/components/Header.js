@@ -1,11 +1,12 @@
 import Image from "next/image";
 import React, {useContext} from "react";
 import { IoWallet } from "react-icons/io5";
-import { FaEthereum } from "react-icons/fa";
+import { FaArrowRight, FaEthereum } from "react-icons/fa";
 import { WalletContext } from "../context/WalletContext";
 import ProfileDropdown from "./ProfileDropdown";
 import { AuthContext } from "../context/AuthContext";
 import Account from "./Account";
+import Button from "./UI/Button";
 
 const Header = () => {
   // const { connectWallet, walletConnected } = useContext(WalletContext);
@@ -24,17 +25,18 @@ const Header = () => {
           <a className="nav-link">Payments</a>
           <a className="nav-link" href="deposit">Deposit</a>
         </nav>
-        <Account/>
-        {/* {
+        {/* <Account/> */}
+        {
           user ? (
-            <ProfileDropdown user={user} account={account} logout={logOut}/>
+
+            <a href="/dashboard" className="nav-link flex bg-gray-200 items-center px-3 p-2 rounded-lg mr-0"><span>Dashboard</span><FaArrowRight className="ml-1 text-gray-400"/></a>
           ) : (
           <button className="btn-primary text-base" onClick={login}>
             <IoWallet className="mr-2" />
             <span>Connect Wallet</span>
           </button>
           )
-        } */}
+        }
       </div>
     </header>
   );

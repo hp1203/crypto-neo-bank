@@ -24,10 +24,10 @@ export const AccountProvider = ({ children }) => {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   var [Balances, setBalances] = useState(cryptos);
-
+  const [maxBalance, setMaxBalance] = useState(0.00)
   // const [ provider, loadWeb3Modal ] = useWeb3Modal();
   const { Moralis, Util } = useMoralis();
-
+  
   const getIpfsData = async (metadataUrl) => {
     // await fetch(metadataUrl).then(res => res.json()).then(result => result.data).catch(console.log);
     let data;
@@ -46,7 +46,76 @@ export const AccountProvider = ({ children }) => {
     return data;
   };
 
+  const withdrawMaximumEth = async () => {
+    try {
+
+      const provider = await Moralis.enableWeb3();
+        // if(provider) {
+        // const provider = new ethers.providers.Web3Provider(web3Provider);
+        const signer = provider.getSigner();
+        // const provider = getProviderOrSigner();
+        // console.log("signer", walletConnected)
+        const neoBankContract = new ethers.Contract(
+          NEOBANK_ADDRESS,
+          NeobankAbi.abi,
+          signer
+        );
+  
+        const txHash = await neoBankContract.withdrawMaxEth(selectedAccount.accountNumber.toString())
+        setIsLoading(true);
+        console.log(`Loading - ${txHash.hash}`);
+        await txHash.wait();
+        setIsLoading(false);
+        console.log(`Success - ${txHash.hash}`);
+    } catch(err) {
+      console.log(err)
+    }
+  }
+
+  const getMaxEthBalance = async () => {
+    try {
+      setMaxBalance(0.00)
+      const provider = await Moralis.enableWeb3();
+        // if(provider) {
+        // const provider = new ethers.providers.Web3Provider(web3Provider);
+        const signer = provider.getSigner();
+        // const provider = getProviderOrSigner();
+        // console.log("signer", walletConnected)
+        const neoBankContract = new ethers.Contract(
+          NEOBANK_ADDRESS,
+          NeobankAbi.abi,
+          signer
+        );
+  
+        setMaxBalance(ethers.utils.formatEther(await neoBankContract.getEthBalanceWithInterest(selectedAccount.accountNumber.toString())));
+    } catch(err) {
+      console.log(err)
+    }
+  }
+  const getMaxERC20Balance = async (token) => {
+      try {
+        setMaxBalance(0.00)
+        const provider = await Moralis.enableWeb3();
+        // if(provider) {
+        // const provider = new ethers.providers.Web3Provider(web3Provider);
+        const signer = provider.getSigner();
+        // const provider = getProviderOrSigner();
+        // console.log("signer", walletConnected)
+        const neoBankContract = new ethers.Contract(
+          NEOBANK_ADDRESS,
+          NeobankAbi.abi,
+          signer
+        );
+        
+        setMaxBalance(ethers.utils.formatEther(await neoBankContract.getERC20BalanceWithInterest(selectedAccount.accountNumber.toString(), token.toString())));
+      } catch(err) {
+      console.log(err)
+    }
+      
+  }
+
   const getEthBalance = async () => {
+    console.log("Selected",selectedAccount)
     try {
       const provider = await Moralis.enableWeb3();
       // if(provider) {
@@ -60,8 +129,8 @@ export const AccountProvider = ({ children }) => {
         signer
       );
 
-      const ethBalance = await neoBankContract.getEthBalance(selectedAccount.accountNumber.toString());
-      const ethBalanceWithInterest = await neoBankContract.getEthBalanceWithInterest(selectedAccount.accountNumber.toString());
+      const ethBalance = await neoBankContract.getEthBalance(selectedAccount['accountNumber'].toString());
+      const ethBalanceWithInterest = await neoBankContract.getEthBalanceWithInterest(selectedAccount['accountNumber'].toString());
       console.log("EthBalance", ethBalance.toString())
       const index = Balances.findIndex(x => x.symbol ==="ETH");
       let balances = Balances;
@@ -90,8 +159,12 @@ export const AccountProvider = ({ children }) => {
       const signer = provider.getSigner();
       const ercToken = new ethers.Contract(token.address, token.abi, signer);
       console.log("Contract", ercToken)
-      const tx = await ercToken.approve(NEOBANK_ADDRESS, ethers.utils.parseEther(amount));
-      tx.wait();
+      const tx = await ercToken.transfer(NEOBANK_ADDRESS, ethers.utils.parseEther(amount));
+      setIsLoading(true);
+      console.log(`Loading - ${tx.hash}`);
+      await tx.wait();
+      setIsLoading(false);
+      console.log(`Success - ${tx.hash}`);
       // const provider = getProviderOrSigner();
       // console.log("signer", walletConnected)
       const neoBankContract = new ethers.Contract(
@@ -173,14 +246,14 @@ export const AccountProvider = ({ children }) => {
     }
   }
 
-  useEffect(() => {
-    if(selectedAccount){
-      getEthBalance();
-      getERC20Balance();
-    }
-  },selectedAccount)
+  // useEffect(() => {
 
-  useEffect(() => {
+  //     getEthBalance();
+  //     getERC20Balance();
+
+  // },[selectedAccount])
+
+  useEffect(async () => {
     const getMyAccounts = async () => {
       try {
         const provider = await Moralis.enableWeb3();
@@ -199,13 +272,20 @@ export const AccountProvider = ({ children }) => {
         setSelectedAccount(allAccounts[0]);
         setAccounts(allAccounts);
         console.log("Accounts", allAccounts);
+        setTimeout(() => {
+          
+        }, 5000);
+        
         // }
         // loadWeb3Modal()
       } catch (err) {
         console.log(err);
       }
     };
-    getMyAccounts();
+    await getMyAccounts();
+    getEthBalance();
+        getERC20Balance();
+    
   }, []);
 
   const createAccount = async (name, metadata) => {
@@ -252,7 +332,11 @@ export const AccountProvider = ({ children }) => {
         getIpfsData,
         Balances,
         depositEthToAccount,
-        depositERC20ToAccount
+        depositERC20ToAccount,
+        getMaxEthBalance,
+        getMaxERC20Balance,
+        maxBalance,
+        withdrawMaximumEth,getEthBalance,getERC20Balance
       }}
     >
       {children}
