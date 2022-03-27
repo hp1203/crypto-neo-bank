@@ -13,6 +13,11 @@ const data = [
     link: '/dashboard',
   },
   {
+    title: 'Investments',
+    icon: <MonitoringIcon />,
+    link: '/investments',
+  },
+  {
     title: 'Payments',
     icon: <BillsIcon />,
     link: '/payments',
@@ -22,11 +27,7 @@ const data = [
     icon: <ApplicationsIcon />,
     link: '/transactions',
   },
-  {
-    title: 'Investments',
-    icon: <MonitoringIcon />,
-    link: '/investments',
-  },
+  
   // {
   //   title: 'Contacts',
   //   icon: <DemographicsIcon />,

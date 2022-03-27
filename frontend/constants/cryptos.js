@@ -2,40 +2,12 @@ export const cryptos = [
   {
     name: "Ethereum",
     symbol: "ETH",
+    address: "0x0000000000000000000000000000000000000000",
     icon: require("../public/cryptos/eth.png"),
     amount: 0.0,
     apy: 0.0,
+    priceAddress:"0x9326BFA02ADD2366b30bacB125260Af641031331"
   },
-  // {
-  //   name: "AAVE",
-  //   symbol: "AAVE",
-  //   address: "0xF19Ccdb83D63b1bFc3f4493763454dF6886dfB0A",
-  //   icon: require("../public/cryptos/aave.png"),
-  //   amount: 0.0,
-  //   apy: 0.0,
-  //   abi: [
-  //     {
-  //       inputs: [
-  //         { internalType: "address", name: "spender", type: "address" },
-  //         {
-  //           internalType: "uint256",
-  //           name: "amount",
-  //           type: "uint256",
-  //         },
-  //       ],
-  //       name: "approve",
-  //       outputs: [
-  //         {
-  //           internalType: "bool",
-  //           name: "",
-  //           type: "bool",
-  //         },
-  //       ],
-  //       stateMutability: "nonpayable",
-  //       type: "function",
-  //     },
-  //   ],
-  // },
   {
     name: "Basic Authentication Token",
     symbol: "BAT",
@@ -43,6 +15,7 @@ export const cryptos = [
     icon: require("../public/cryptos/bat.png"),
     amount: 0.0,
     apy: 0.0,
+    priceAddress:"0x8e67A0CFfbbF6A346ce87DFe06daE2dc782b3219",
     abi: [
       {
         anonymous: false,
@@ -236,6 +209,7 @@ export const cryptos = [
     icon: require("../public/cryptos/dai.png"),
     amount: 0.0,
     apy: 0.0,
+    priceAddress:"0x777A68032a88E5A84678A77Af2CD65A7b3c0775a",
     abi: [
       {
         anonymous: false,
@@ -429,6 +403,7 @@ export const cryptos = [
   //     icon: require('../public/cryptos/link.png'),
   //     amount: 0.00,
   //     apy: 0.00
+  // priceAddress:"",
   // },
   {
     name: "Uniswap",
@@ -437,6 +412,7 @@ export const cryptos = [
     icon: require("../public/cryptos/uni.png"),
     amount: 0.0,
     apy: 0.0,
+    priceAddress:"0xDA5904BdBfB4EF12a3955aEcA103F51dc87c7C39",
     abi: [
       {
         anonymous: false,
@@ -630,6 +606,7 @@ export const cryptos = [
     icon: require("../public/cryptos/wbtc.png"),
     amount: 0.0,
     apy: 0.0,
+    priceAddress:"0x6135b13325bfC4B00278B4abC5e20bbce2D6580e",
     abi: [
       {
         anonymous: false,
@@ -823,6 +800,7 @@ export const cryptos = [
     icon: require("../public/cryptos/usdc.png"),
     amount: 0.0,
     apy: 0.0,
+    priceAddress:"0x9211c6b3BF41A10F78539810Cf5c64e1BB78Ec60",
     abi: [
       {
         anonymous: false,
@@ -1016,6 +994,7 @@ export const cryptos = [
     icon: require("../public/cryptos/usdt.png"),
     amount: 0.0,
     apy: 0.0,
+    priceAddress:"0x2ca5A90D34cA333661083F89D831f757A9A50148",
     abi: [
       {
         anonymous: false,

@@ -7,7 +7,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {Counters} from "@openzeppelin/contracts/utils/Counters.sol";
 import "./interfaces/INeobank.sol";
 
-contract Payments is ReentrancyGuard {
+contract Payments is ReentrancyGuard, Ownable {
     INeobank neobank;
 
     constructor(address _neobank) {

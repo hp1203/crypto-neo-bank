@@ -34,6 +34,7 @@ const Transactions = () => {
             first: 20
             orderBy: timestamp
             orderDirection: desc
+            where: { owner: "${account}" }
         ) {
             id
             currency
@@ -55,7 +56,10 @@ const Transactions = () => {
     const fetchData = async () => {
       const response = await client.query(query).toPromise();
       console.log("Response", response);
-      setTransactions(response.data.transactions);
+      if(response.data){
+
+        setTransactions(response.data.transactions);
+      }
     };
     fetchData();
   }, []);
@@ -64,7 +68,7 @@ const Transactions = () => {
       <PageHeader title="Transactions">
         {/* <AccountSelection/>
          */}
-        <CreatePaymentLink />
+        {/* <CreatePaymentLink /> */}
       </PageHeader>
 
       <Card className="">
@@ -86,10 +90,12 @@ const Transactions = () => {
             ]}
           />
           <TableBody>
-            {transactions.map((transaction, index) => (
+            {
+              transactions.length > 0 ?
+              transactions.map((transaction, index) => (
               <>
                 <TableRow>
-                  <TableCol>{index}</TableCol>
+                  <TableCol>{index+1}</TableCol>
                   <TableCol>{transaction.currency}</TableCol>
                   <TableCol>
                     {
@@ -112,7 +118,15 @@ const Transactions = () => {
                   </TableCol>
                 </TableRow>
               </>
-            ))}
+            ))
+            : (
+                          <TableRow className="w-full">
+                          <TableCol colSpan="8" className="text-center border">
+                            <p className="text-base text-gray-500">No Transactions Found</p>
+                          </TableCol>
+                          </TableRow>
+                        )
+            }
           </TableBody>
         </Table>
       </Card>

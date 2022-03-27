@@ -7,21 +7,14 @@ import ShowMoreText from "react-show-more-text";
 import Image from "next/image";
 import ListItem from "./UI/ListItem";
 export const AccountBalances = (props) => {
-  const { selectedAccount, Balances,getEthBalance,getERC20Balance  } = useContext(AccountContext)
-  useEffect(() => {
-    if(selectedAccount){
-      getEthBalance();
-      getERC20Balance();
-    }
-  },[])
+  const { selectedAccount, Balances, getEthBalance, getERC20Balance  } = useContext(AccountContext)
+  const [userBalances, setUserBalances] = useState([])
  
   useEffect(() => {
-    if(selectedAccount){
-      getEthBalance();
-      getERC20Balance();
-    }
-  },[selectedAccount])
-  if(!selectedAccount){
+    setUserBalances(Balances)
+  },[Balances])
+  console.log("Balance", Balances)
+  if(!Balances){
     return null
   }
   return (
@@ -31,7 +24,7 @@ export const AccountBalances = (props) => {
               <FaArrowRight className="text-sm items-center font-base tracking-widest text-violet-500" />
             </div>
             {
-            Balances.map((crypto, index) => (
+              userBalances.map((crypto, index) => (
                 <ListItem image={crypto.icon} title={crypto.name} subTitle={crypto.symbol} key={index} left={(
                   <div className="flex flex-col items-end">
                     <p className=" font-medium">{parseFloat(crypto.amount).toFixed(2)} {crypto.symbol}</p>

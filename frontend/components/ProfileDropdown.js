@@ -145,7 +145,7 @@ export default function ProfileDropdown({ user, account, logout }) {
                   <div className="flex flex-col">
                     <div className="text-center px-14 mb-3">
                       <h2 className="text-gray-800 text-3xl font-bold">
-                        Mohit Dhiman
+                        Himanshu Purohit
                       </h2>
                       <div className="flex space-x-2 justify-center mt-2 items-center">
                         <p className="text-gray-400">
@@ -180,7 +180,8 @@ export default function ProfileDropdown({ user, account, logout }) {
                       ))}
                     </div>
                     <Button
-                      className="flex bottom-0 py-4 w-full mt-3"
+                      className="flex bottom-0 py-4 w-full mt-3 justify-center text-center"
+                      onClick={logout}
                       primary
                       title="Disconnect Wallet"
                     />

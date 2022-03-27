@@ -16,6 +16,12 @@ import { PAYMENT_ADDRESS } from "../../constants";
 import PaymentABI from "../../artifacts/Payments.sol/Payments.json";
 import { createClient } from "urql";
 import { AccountContext } from "../../context/AccountContext";
+import { getUsdPrice } from "../../hooks/useChainlink";
+import { cryptos } from "../../constants/cryptos";
+import { ethers, utils } from "ethers";
+import toast from "react-hot-toast";
+import Button from "../../components/UI/Button";
+import axios from "axios";
 const people = [
   { id: 1, name: "ETH", icon: "https://downloads.coindesk.com/arc-hosted-images/eth.png" },
   // { id: 2, name: "LINK", icon:"https://etherscan.io/token/images/chainlinktoken_32.png?v=6" },
@@ -143,7 +149,10 @@ const Pay = () => {
   const [metadata, setMetadata] = useState(null)
   const { Moralis } = useMoralis()
   const { getIpfsData } = useContext(AccountContext)
-
+  const [amount, setAmount] = useState(0.0)
+  const [usdPrice, setUsdPrice] = useState(0.0);
+  const [unitPrice, setUnitPrice] = useState(0.0);
+  const [isLoading, setIsLoading] = useState(false);
   const APIURL = "https://api.thegraph.com/subgraphs/name/hp1203/cryptoneo";
 
   const query = `
@@ -166,20 +175,101 @@ const Pay = () => {
   const client = createClient({
       url: APIURL
   });
+  useEffect(()=>{
+    console.log("crypto",cryptos[0])
+    getUsdPrice(cryptos[0].priceAddress).then((price)=>{
+      setUnitPrice(price)
+      console.log("Price", price)
+    })
+  },[cryptos[0].priceAddress])
+
+  const handleOnChange = (e) => {
+    setAmount(e.target.value.replace(/[^.\d]/g, ""));
+    setUsdPrice(parseFloat(amount) * unitPrice)
+  }
+
+  const handlePayment = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const provider = await Moralis.enableWeb3();
+      // if(provider) {
+      // const provider = new ethers.providers.Web3Provider(web3Provider);
+      const signer = provider.getSigner();
+      // const provider = getProviderOrSigner();
+      // console.log("signer", walletConnected)
+      const paymentContract = new ethers.Contract(
+        PAYMENT_ADDRESS,
+        PaymentABI.abi,
+        signer
+      );
+      console.log("Contract", paymentContract)
+
+      const txHash = await paymentContract.connect(signer).makeEthPayment(paymentLinkDetails.paymentLinkId, { value: utils.parseEther(amount)});
+
+      setIsLoading(true);
+      console.log(`Loading - ${txHash.hash}`);
+      await txHash.wait();
+      setIsLoading(false);
+      console.log(`Success - ${txHash.hash}`);
+      toast.success("Payment Successfull!")
+      // }
+      // loadWeb3Modal()
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
         const response = await client.query(query).toPromise()
-        console.log("Response", response);
-        if(response.data){
-
+        // console.log("Response", response.data.paymentLinks[0]);
+        if(response.data.paymentLinks[0] !== undefined){
           setPaymentLinkDetails(response.data.paymentLinks[0])
-          console.log(response.data.paymentLinks[0].metadata)
-          getIpfsData(response.data.paymentLinks[0].metadata).then(data => {
-            console.log("Metadata", data)  
-            setMetadata(data)
-          }); 
+          if(response.data.paymentLinks[0].metadata !== ""){
+            console.log("asdasd")
+            // getIpfsData(response.data.paymentLinks[0].metadata).then(data => {
+            //   console.log("data", data)
+            //   setMetadata(data)
+            // }); 
+            await axios
+            .get(response.data.paymentLinks[0].metadata)
+            .then((res) => {
+              console.log("IPFS", typeof res.data);
+              let metadata = JSON.stringify(res.data);
+              // data = metadata.replace('ipfs://', baseIpfsUrl);
+              setMetadata(JSON.parse(metadata))
+              // return (data = JSON.parse(metadata));
+              // return metadata;
+            })
+            .catch((err) => {
+              return err;
+            });
+          }
+          console.log("Metadata",response.data.paymentLinks[0].metadata)  
         }
+        // try {
+        //   const provider = await Moralis.enableWeb3();
+        //   // if(provider) {
+        //   // const provider = new ethers.providers.Web3Provider(web3Provider);
+        //   const signer = provider.getSigner();
+        //   // const provider = getProviderOrSigner();
+        //   // console.log("signer", walletConnected)
+        //   const paymentContract = new ethers.Contract(
+        //     PAYMENT_ADDRESS,
+        //     PaymentABI.abi,
+        //     signer
+        //   );
+
+        //   // console.log("Contract", paymentContract)
+    
+        //   const link = await paymentContract.getPaymentLink(response.data.paymentLinks[0].paymentLinkId);
+        //   console.log("Link", link)
+        //   // }
+        //   // loadWeb3Modal()
+        // } catch (err) {
+        //   console.log(err);
+        // }
     }
     fetchData()
   },[linkid])
@@ -193,25 +283,28 @@ const Pay = () => {
       </Head>
 
       <Header />
-      {
-        metadata &&
+      
       <main
         className="min-h-screen flex justify-center items-start py-24
         bg-gray-50 px-8"
       >
         <div className="flex font-sans bg-white max-w-xl shadow-lg rounded-lg">
+        {
+          metadata !== null &&
           <div className="flex-none hidden md:block w-56 p-4">
             <img
-              src="https://tailwindcss.com/_next/static/media/kids-jumper.47a06f045002a3e6ba595351a36a46eb.jpg"
+              src={metadata.image}
               alt=""
-              className="inset-0 w-full h-full object-cover rounded-lg"
+              className="inset-0 w-full h-full object-cover rounded-lg object-contain"
             />
           </div>
-          <form className="flex-auto p-6 pl-2">
-            <div className="flex border-b border-gray-100 pb-4 mb-4">
-
+        }
+          <form className="flex-auto p-6" onSubmit={handlePayment}>
+          {
+            metadata !== null && (
+            <div className="flex items-center border-b border-gray-100 pb-4 mb-4">
             <img
-              src="https://tailwindcss.com/_next/static/media/kids-jumper.47a06f045002a3e6ba595351a36a46eb.jpg"
+              src={metadata.image}
               alt=""
               className="inset-0 w-28 h-28 rounded-lg mr-3 object-cover rounded-lg block md:hidden"
             />
@@ -232,30 +325,32 @@ const Pay = () => {
                   <FaDiscord className="w-5 h-5 hover:text-violet-500 cursor-pointer"/>
                 </div> */}
               </div>
-            </div>
+            </div>)
+          }
 
             <div className="w-full flex border rounded-lg p-1 mb-2">
-                <input type="text" min={0.01} placeholder="Enter Amount" className="w-full focus:ring-0 border-0  right-0 py-2 pl-3  text-sm leading-5 text-gray-600 font-semibold"/>
+                <input type="text" min={0.01} placeholder="Enter Amount" className="w-full focus:ring-0 border-0  right-0 py-2 pl-3  text-sm leading-5 text-gray-600 font-semibold" onChange={handleOnChange} name="amount" value={amount}/>
                 <CurrencyDropdown />
 
             </div>
             <div className="w-full flex text-gray-400 p-1 mb-4 justify-between items-center">
-              <span>$ 2499</span>
-              <span>1 ETH ~ $2499</span>
+              <span>$ {parseFloat(usdPrice).toFixed(2)}</span>
+              <span>1 ETH ~ ${parseFloat(unitPrice).toFixed(2)}</span>
             </div>
-            <button
+            <Button primary className="w-full text-center justify-center mb-2" title="Pay Now" type="submit" loading={isLoading}/>
+            {/* <button
               className="h-10 px-6 mb-2 font-semibold rounded-lg w-full bg-violet-500 hover:bg-violet-600 duration-150 text-white"
               type="submit"
             >
               Pay now
-            </button>
+            </button> */}
             <p className="text-sm text-center text-slate-500">
               Gas fee will be applied extra.
             </p>
           </form>
         </div>
       </main>
-      }
+
       <Footer />
     </div>
   );

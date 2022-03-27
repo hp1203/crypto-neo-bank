@@ -23,7 +23,7 @@ export default function CryptoDropdown({ selected, setSelected }) {
   return (
     <div className="w-64 top-16">
       <Combobox value={selected} onChange={setSelected}>
-        <div className="relative mt-1">
+        <div className="relative z-30 mt-1">
         <div className="relative w-full text-left bg-white rounded-lg border cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-opacity-75 focus-visible:ring-white focus-visible:ring-offset-violet-300 focus-visible:ring-offset-2 sm:text-sm overflow-hidden flex items-center pl-2">
         <Image
                             alt={selected.name}

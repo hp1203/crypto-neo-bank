@@ -10,21 +10,25 @@ import { connectors } from "../constants/walletConfigs";
 import Input from "./UI/Input";
 import Textarea from "./UI/Textarea";
 import ImageInput from "./UI/ImageInput";
+import CryptoDropdown from "../components/CryptoDropdown"
 
 import {PAYMENT_ADDRESS} from "../constants"
 import PaymentABI from "../artifacts/Payments.sol/Payments.json";
 import { ethers } from "ethers";
-const CreatePaymentLink = (props) => {
+import { cryptos } from "../constants/cryptos";
+const CreateFd = (props) => {
   const { isAuthenticated, Moralis } = useMoralis();
-  const [type, setType] = useState('WALLET');
+  const [type, setType] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   let [isOpen, setIsOpen] = useState(false);
+
+  const [selected, setSelected] = useState(cryptos[0]);
+  const [usdPrice, setUsdPrice] = useState(0.0);
+  const [unitPrice, setUnitPrice] = useState(0.0);
+
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
-    image: null,
-    address: "",
-    account: "000000"
+    amount: 0
   });
 
   function closeModal() {
@@ -74,11 +78,9 @@ const CreatePaymentLink = (props) => {
         PaymentABI.abi,
         signer
       );
-      console.log("PaymentLink Data", create_UUID(), type, formData.address.toString(), formData.account.toString(), metadata.ipfs())
-        setTimeout(() => {
+      console.log("Contract", paymentContract)
 
-        },5000)
-      const txHash = await paymentContract.createPaymentLink(create_UUID(), type, formData.address.toString(), formData.account.toString(), metadata.ipfs());
+      const txHash = await paymentContract.createPaymentLink(create_UUID(), type, formData.address.toString(), formData.account.toString(), metadata);
 
       setIsLoading(true);
       console.log(`Loading - ${txHash.hash}`);
@@ -92,17 +94,6 @@ const CreatePaymentLink = (props) => {
     } catch (err) {
       console.log(err);
     }
-  };
-
-  const handleImageChange = (event) => {
-    const { name, files } = event.target;
-    setFormData((prevState) => {
-      return {
-        ...prevState,
-        [name]: files[0],
-      };
-    });
-    console.log(formData.image);
   };
 
   const handleChange = (event) => {
@@ -177,17 +168,7 @@ const CreatePaymentLink = (props) => {
                   </Dialog.Title>
                   <div className="mt-2 ">
                     <form onSubmit={handleSubmit}>
-                      <ImageInput
-                        preview
-                        previewSrc={
-                          formData.image !== null &&
-                          URL.createObjectURL(formData.image)
-                        }
-                        previewClassName="w-20 h-20 rounded-full"
-                        name="image"
-                        label="Image"
-                        onChange={handleImageChange}
-                      />
+                      
                       <Input
                         label="Name"
                         type="text"
@@ -196,25 +177,7 @@ const CreatePaymentLink = (props) => {
                         placeholder="Enter name for Account"
                         onChange={handleChange}
                       />
-                      <Textarea
-                        label="Description"
-                        name="description"
-                        value={formData.descriptiom}
-                        placeholder="Describe your account"
-                        onChange={handleChange}
-                      />
-                      <div className="flex flex-col space-y-1 mb-2">
-                        <label className="font-medium text-gray-600">
-                          Payment Type
-                        </label>
-                        <select
-                          className={`border-gray-100 focus:ring-1 focus-visible:ring-violet-500 bg-gray-50 rounded-lg`}
-                          onChange={(e) => setType(e.target.value)}
-                        >
-                          <option value="WALLET">Wallet</option>
-                          <option value="ACCOUNT">Cryptoneo Account</option>
-                        </select>
-                      </div>
+
                       <Input
                         label="Address"
                         type="text"
@@ -223,17 +186,46 @@ const CreatePaymentLink = (props) => {
                         placeholder="Enter your wallet address"
                         onChange={handleChange}
                       />
-                      {
-                          type == 1 &&
-                          <Input
-                            label="Account Number"
-                            type="number"
-                            name="account"
-                            value={formData.account}
-                            placeholder="Enter your cryptoneo account number"
-                            onChange={handleChange}
+                      <div className="flex flex-col space-y-1 mb-2">
+        <label className="font-medium text-gray-600">Amount</label>
+
+                      <div className="w-full bg-gray-50 flex border border-gray-100 rounded-lg p-1 mb-2">
+                        <input type="text" min={0.01} placeholder="Enter Amount" className="w-full bg-transparent focus:ring-0 border-0  right-0 py-2 pl-3  text-sm leading-5 text-gray-600 font-semibold" onChange={handleChange} name="amount" value={formData.amount}/>
+                        <div className="flex items-center w-24 space-x-2">
+                        <Image
+                            alt={selected.name}
+                          src={selected.icon}
+                          width="30px"
+                          height="30px"
+                          objectFit='cover'
+                          className="rounded-full w-16 bg-white mr-2"
                         />
-                      }
+                        <span
+                          className={`block truncate font-medium`}
+                        >
+                          {selected.symbol}
+                        </span>
+                        </div>
+                        {/* <CryptoDropdown
+                      selected={selected}
+                      setSelected={setSelected}
+                    /> */}
+</div>
+                    </div>
+                    <div className="flex flex-col space-y-1 mb-2">
+                        <label className="font-medium text-gray-600">
+                          Duration
+                        </label>
+                        <select
+                          className={`border-gray-100 focus:ring-1 focus-visible:ring-violet-500 bg-gray-50 rounded-lg`}
+                          onChange={(e) => setType(e.target.value)}
+                        >
+                          <option value="15">15 Days</option>
+                          <option value="30">30 Days</option>
+                          <option value="60">60 Days</option>
+                          <option value="90">90 Days</option>
+                        </select>
+                      </div>
                       <Button
                         type="submit"
                         title="Create"
@@ -260,4 +252,4 @@ const CreatePaymentLink = (props) => {
   );
 };
 
-export default CreatePaymentLink;
+export default CreateFd;

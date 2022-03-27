@@ -9,7 +9,7 @@ import DepositModal from "./DepositModal";
 import { AuthContext } from "../context/AuthContext";
 import WithdrawModal from "./WithdrawModal";
 export const AccountStats = (props) => {
-  const { selectedAccount, getIpfsData } = useContext(AccountContext)
+  const { selectedAccount, getIpfsData, maxUSDBalance } = useContext(AccountContext)
   const { account } = useContext(AuthContext)
   const [metadata, setMetadata] = useState({});
   useEffect(() => {
@@ -68,7 +68,7 @@ export const AccountStats = (props) => {
             </p>
           </div>
           <p className="font-semibold text-3xl tracking-widest">
-            <span className="text-gray-500 font-extralight">$</span>345,890
+            <span className="text-gray-500 font-extralight">$</span>{parseFloat(maxUSDBalance).toFixed(2)}
           </p>
         </div>
         <div className="flex space-x-2 items-center justify-between">

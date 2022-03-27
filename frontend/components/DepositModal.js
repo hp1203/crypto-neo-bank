@@ -13,12 +13,14 @@ import ImageInput from "./UI/ImageInput";
 import { AccountContext } from "../context/AccountContext";
 import { cryptos } from "../constants/cryptos";
 import CryptoDropdown from "./CryptoDropdown";
+import { getUsdPrice } from "../hooks/useChainlink";
 
 const DepositModal = ({ address, accountNumber }) => {
   const { isAuthenticated, Moralis } = useMoralis();
   const { createAccount, isLoading, depositEthToAccount, depositERC20ToAccount } = useContext(AccountContext);
   const [selected, setSelected] = useState(cryptos[0]);
-
+  const [usdPrice, setUsdPrice] = useState(0.0);
+  const [unitPrice, setUnitPrice] = useState(0.0);
   let [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
@@ -28,6 +30,14 @@ const DepositModal = ({ address, accountNumber }) => {
   function openModal() {
     setIsOpen(true);
   }
+
+  useEffect(()=>{
+    console.log("crypto",cryptos[0])
+    getUsdPrice(cryptos[0].priceAddress).then((price)=>{
+      setUnitPrice(price)
+      console.log("Price", price)
+    })
+  },[cryptos[0].priceAddress])
 
   const [form, setForm] = useState({
     address: address,
@@ -39,6 +49,7 @@ const DepositModal = ({ address, accountNumber }) => {
       ...form,
       [e.target.name]: e.target.value.replace(/[^.\d]/g, ""),
     });
+    setUsdPrice(parseFloat(e.target.value.replace(/[^.\d]/g, "")) * unitPrice)
   };
   const handleFormSubmit = (e) => {
     e.preventDefault();
@@ -112,7 +123,21 @@ const DepositModal = ({ address, accountNumber }) => {
                       <IoClose />
                     </button>
                   </Dialog.Title>
-                  <div className="mt-2 ">
+                  <div className={`mt-2 ${ selected.symbol !== 'ETH' ? 'relative' : ''}`}>
+                  {
+                    selected.symbol !== 'ETH' && 
+                    <div className="bg-gray-500 bg-opacity-80 rounded-lg absolute flex flex-col w-full h-full justify-center items-center text-white">
+                    <Image
+                            alt={selected.name}
+                          src={selected.icon}
+                          width="60px"
+                          height="60px"
+                          objectFit='cover'
+                          className="rounded-full ml-3 w-6 h-6 bg-white"
+                        />
+                        <p className="text-lg text-center mx-2">We're currently not supporting {selected.name} deposits</p>
+                    </div>
+                  }
                     <form onSubmit={handleFormSubmit}>
                       <div className="flex flex-col bg-gray-50 rounded-lg">
                       <p className="text-sm ml-2 mt-2 uppercase text-gray-500">Deposit</p>
@@ -136,8 +161,8 @@ const DepositModal = ({ address, accountNumber }) => {
                       </div>
                       </div>
                       <div className="w-full flex text-gray-400 p-1 mb-4 justify-between items-center">
-                        <span>$ 2499</span>
-                        <span>1 {selected.symbol} ~ $2499</span>
+                      <span>$ {parseFloat(usdPrice).toFixed(2)}</span>
+                      <span>1 {selected.symbol} ~ ${parseFloat(unitPrice).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between items-center border-t border-gray-50 pt-3">
                         <p className="text-sm text-center text-slate-500">

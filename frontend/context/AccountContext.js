@@ -15,6 +15,7 @@ import useWeb3Modal from "../hooks/useWeb3Modal";
 import axios from "axios";
 
 import { cryptos } from "../constants/cryptos";
+import { getUsdPrice } from "../hooks/useChainlink";
 export const AccountContext = React.createContext();
 
 export const AccountProvider = ({ children }) => {
@@ -23,8 +24,9 @@ export const AccountProvider = ({ children }) => {
   const [accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  var [Balances, setBalances] = useState(cryptos);
+  var [Balances, setBalances] = useState([]);
   const [maxBalance, setMaxBalance] = useState(0.00)
+  const [maxUSDBalance, setMaxUSDBalance] = useState(0)
   // const [ provider, loadWeb3Modal ] = useWeb3Modal();
   const { Moralis, Util } = useMoralis();
   
@@ -132,17 +134,58 @@ export const AccountProvider = ({ children }) => {
       const ethBalance = await neoBankContract.getEthBalance(selectedAccount['accountNumber'].toString());
       const ethBalanceWithInterest = await neoBankContract.getEthBalanceWithInterest(selectedAccount['accountNumber'].toString());
       console.log("EthBalance", ethBalance.toString())
-      const index = Balances.findIndex(x => x.symbol ==="ETH");
-      let balances = Balances;
-      balances[index] = {
+      // const index = Balances.findIndex(x => x.symbol ==="ETH");
+      let balances = [];
+      balances.push({
           name: cryptos[0].name,
           symbol: cryptos[0].symbol,
           icon: cryptos[0].icon,
           amount: ethers.utils.formatEther(ethBalance.toString()),
           apy: ethers.utils.formatEther(ethBalanceWithInterest.toString() - ethBalance.toString())
-        }
-      console.log("Index", balances)
+        })
+        setTimeout(() => {
+          
+        }, 5000);
+      getUsdPrice(cryptos[0].priceAddress).then((price) => {
+        console.log("in")
+        console.log("Price", price, typeof price)
+        console.log("BalWithInt", parseFloat(ethers.utils.formatEther(ethBalanceWithInterest.toString())), typeof parseFloat(ethers.utils.formatEther(ethBalanceWithInterest.toString())))
+        const usdPrice = parseFloat(maxUSDBalance) + (parseFloat(ethers.utils.formatEther(ethBalanceWithInterest.toString())) * price);
+        console.log("UsdPrice", usdPrice)
+        setMaxUSDBalance(usdPrice)
+      }).catch(err => {
+        console.log("Err", err)
+      })
+      // setBalances(balances)
+      
+      // for(var i = 1; i < cryptos.length; i++){
+      //   const balance = await neoBankContract.getERC20Balance(selectedAccount.accountNumber.toString(), cryptos[i].address);
+      //   console.log("Balance of ", cryptos[i].name, balance)
+      //   const balanceWithInterest = await neoBankContract.getERC20BalanceWithInterest(selectedAccount.accountNumber.toString(), cryptos[i].address);
+      //   // console.log("EthBalance", ethBalance.toString())
+      //   balances.push({
+      //     name: cryptos[i].name,
+      //     symbol: cryptos[i].symbol,
+      //     icon: cryptos[i].icon,
+      //     amount: ethers.utils.formatEther(balance.toString()),
+      //     apy: ethers.utils.formatEther(balanceWithInterest.toString() - balance.toString())
+      //   })
+      //   setTimeout(() => {
+          
+      //   }, 5000);
+      //   getUsdPrice(cryptos[i].priceAddress).then((price) => {
+      //     console.log("in")
+      //     console.log("Price", price, typeof price)
+      //     console.log("BalWithInt", parseFloat(ethers.utils.formatEther(ethBalanceWithInterest.toString())), typeof parseFloat(ethers.utils.formatEther(ethBalanceWithInterest.toString())))
+      //     const usdPrice = parseFloat(maxUSDBalance) + (parseFloat(ethers.utils.formatEther(ethBalanceWithInterest.toString())) * price);
+      //     console.log("UsdPrice", usdPrice)
+      //     setMaxUSDBalance(usdPrice)
+      //   }).catch(err => {
+      //     console.log("Err", err)
+      //   })
+      // }
       setBalances(balances)
+      console.log("Index", Balances)
       
       // }
       // loadWeb3Modal()
@@ -179,7 +222,7 @@ export const AccountProvider = ({ children }) => {
       await txHash.wait();
       setIsLoading(false);
       console.log(`Success - ${txHash.hash}`);
-
+      window.location.reload()
     } catch (err) {
       console.log(err);
     }
@@ -205,6 +248,7 @@ export const AccountProvider = ({ children }) => {
       await txHash.wait();
       setIsLoading(false);
       console.log(`Success - ${txHash.hash}`);
+      window.location.reload()
 
     } catch (err) {
       console.log(err);
@@ -224,9 +268,9 @@ export const AccountProvider = ({ children }) => {
         NeobankAbi.abi,
         signer
       );
-      let balances = Balances;
+      let balances = [];
       
-      for(var i = 1; i < Balances.length(); i++){
+      for(var i = 1; i < cryptos.length(); i++){
         const balance = await neoBankContract.getERC20Balance(selectedAccount.accountNumber.toString(), cryptos[i].address);
         const balanceWithInterest = await neoBankContract.getERC20BalanceWithInterest(selectedAccount.accountNumber.toString(), cryptos[i].address);
         // console.log("EthBalance", ethBalance.toString())
@@ -237,21 +281,29 @@ export const AccountProvider = ({ children }) => {
           amount: ethers.utils.formatEther(balance.toString()),
           apy: ethers.utils.formatEther(balanceWithInterest.toString() - balance.toString())
         }
+        setTimeout(() => {
+          
+        }, 5000);
+        await getUsdPrice(cryptos[i].priceAddress).then((price) => {
+          setMaxUSDBalance(maxUSDBalance + (ethers.utils.formatEther(balanceWithInterest) * price))
+        })
       }
-      setBalances(balances)
-      // console.log("Index", index)
+      setBalances([...Balances, balances])
+      console.log("Index", balances)
 
     } catch (err) {
       console.log(err);
     }
   }
 
-  // useEffect(() => {
+  useEffect(() => {
+    if(selectedAccount){
 
-  //     getEthBalance();
-  //     getERC20Balance();
+      getEthBalance();
+      getERC20Balance();
+    }
 
-  // },[selectedAccount])
+  },[selectedAccount])
 
   useEffect(async () => {
     const getMyAccounts = async () => {
@@ -275,7 +327,7 @@ export const AccountProvider = ({ children }) => {
         setTimeout(() => {
           
         }, 5000);
-        
+  
         // }
         // loadWeb3Modal()
       } catch (err) {
@@ -283,8 +335,7 @@ export const AccountProvider = ({ children }) => {
       }
     };
     await getMyAccounts();
-    getEthBalance();
-        getERC20Balance();
+    
     
   }, []);
 
@@ -309,12 +360,14 @@ export const AccountProvider = ({ children }) => {
       await txHash.wait();
       setIsLoading(false);
       console.log(`Success - ${txHash.hash}`);
-      neoBankContract.on(
-        "AccountCreated",
-        (_owner, _accountNumber, metadata) => {
-          console.log("Event", _owner, _accountNumber, metadata);
-        }
-      );
+      // neoBankContract.on(
+      //   "AccountCreated",
+      //   (_owner, _accountNumber, metadata) => {
+      //     console.log("Event", _owner, _accountNumber, metadata);
+      //   }
+      // );
+      console.log(`Success - ${txHash.hash}`);
+      window.location.reload()
       // }
       // loadWeb3Modal()
     } catch (err) {
@@ -336,7 +389,7 @@ export const AccountProvider = ({ children }) => {
         getMaxEthBalance,
         getMaxERC20Balance,
         maxBalance,
-        withdrawMaximumEth,getEthBalance,getERC20Balance
+        withdrawMaximumEth,getEthBalance,getERC20Balance,maxUSDBalance
       }}
     >
       {children}

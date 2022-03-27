@@ -1,5 +1,5 @@
-export const NEOBANK_ADDRESS = "0xd05ed9B47B87Ce945f422838195cd8D95Fe14398";
-export const PAYMENT_ADDRESS = "0x44Fc1eeAF96c54c6553Ed650B8aD745Ee0205ECf";
+export const NEOBANK_ADDRESS = "0x34D476A3d019a319c1Db824D22980e0B8C4F1E80";
+export const PAYMENT_ADDRESS = "0xB1541539cdAD90Eea51b253DE2701E9dF24db2DF";
 
 // Subgraph endpoints:
 // Queries (HTTP):     https://api.thegraph.com/subgraphs/name/hp1203/cryptoneo

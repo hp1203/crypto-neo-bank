@@ -17,6 +17,7 @@ import TableHead from "../../components/UI/TableHead";
 import { AccountBalances } from "../../components/AccountBalances";
 import { AuthContext } from "../../context/AuthContext";
 import CreatePaymentLink from "../../components/CreatePaymentLink";
+import CreateFd from "../../components/CreateFd";
 
 const Investments = () => {
   const { account } = useContext(AuthContext)
@@ -25,61 +26,35 @@ const Investments = () => {
       <PageHeader title="Investments">
         {/* <AccountSelection/>
         */}
-        <CreatePaymentLink/> 
+        {/* <CreatePaymentLink/>  */}
       </PageHeader>
 
       <HStack space={4}>
-      <Grid cols={3}>
-
-            <Card>
-
-                <div id="jh-stats-positive" className="flex flex-col justify-center ">
-                    <div>
-                        <div>
-                            <p className="flex items-center justify-end text-green-500 text-md">
-                                <span className="font-bold">6%</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path className="heroicon-ui" d="M20 15a1 1 0 002 0V7a1 1 0 00-1-1h-8a1 1 0 000 2h5.59L13 13.59l-3.3-3.3a1 1 0 00-1.4 0l-6 6a1 1 0 001.4 1.42L9 12.4l3.3 3.3a1 1 0 001.4 0L20 9.4V15z"/></svg>
-                            </p>
-                        </div>
-                        <p className="text-3xl font-semibold text-center text-gray-800">43</p>
-                        <p className="text-lg text-center text-gray-500">New Tickets</p>
-                    </div>
-                </div>
-            </Card>
-            <Card>
-
-                <div id="jh-stats-negative" className="flex flex-col justify-center ">
-                    <div>
-                        <div>
-                            <p className="flex items-center justify-end text-red-500 text-md">
-                                <span className="font-bold">6%</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path className="heroicon-ui" d="M20 9a1 1 0 012 0v8a1 1 0 01-1 1h-8a1 1 0 010-2h5.59L13 10.41l-3.3 3.3a1 1 0 01-1.4 0l-6-6a1 1 0 011.4-1.42L9 11.6l3.3-3.3a1 1 0 011.4 0l6.3 6.3V9z"/></svg>
-                            </p>
-                        </div>
-                        <p className="text-3xl font-semibold text-center text-gray-800">43</p>
-                        <p className="text-lg text-center text-gray-500">New Tickets</p>
-                    </div>
-                </div>
-            </Card>
-            <Card>
-                <div id="jh-stats-neutral" className="flex flex-col justify-center">
-                    <div>
-                        <div>
-                            <p className="flex items-center justify-end text-gray-500 text-md">
-                                <span className="font-bold">0%</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path className="heroicon-ui" d="M17 11a1 1 0 010 2H7a1 1 0 010-2h10z"/></svg>
-                            </p>
-                        </div>
-                        <p className="text-3xl font-semibold text-center text-gray-800">43</p>
-                        <p className="text-lg text-center text-gray-500">New Tickets</p>
-                    </div>
-                </div>
-            </Card>
-
-
-        </Grid>
+      
         <Grid cols={2}>
-        
+          <HStack>
+          <Card className="mb-3">
+                <div id="jh-stats-neutral" className="flex flex-col justify-center">
+                <div className="flex justify-between mb-8">
+                            <h1 className="text-lg font-semibold">Fixed Deposits</h1>
+                            <CreateFd/>
+                        </div>
+                        <div className="flex justify-between">
+                        <div className="flex border-r border-gray-100 w-full flex-col justify-center items-center">
+                          <p className="text-3xl font-semibold text-center text-gray-800">43</p>
+                          <p className="text-lg text-center text-gray-500">Total FDs</p>
+                        </div>
+                        <div className="flex border-r border-gray-100 w-full flex-col justify-center items-center">
+                          <p className="text-3xl font-semibold text-center text-gray-800">43</p>
+                          <p className="text-lg text-center text-gray-500">Total Investment</p>
+                        </div>
+                        <div className="flex w-full flex-col justify-center items-center">
+                          <p className="text-3xl font-semibold text-center text-gray-800">43</p>
+                          <p className="text-lg text-center text-gray-500">Total APY</p>
+                        </div>
+                        </div>
+                    </div>
+            </Card>
           <Card className="">
             <div className="flex mb-4 items-center justify-between">
               <p className="font-semibold text-lg">Latest Transactions</p>
@@ -157,7 +132,32 @@ const Investments = () => {
               </a>
             </TableFooter>
           </Card>
+          </HStack>
+          <HStack>
+          <Card className="mb-3">
+                <div id="jh-stats-neutral" className="flex flex-col justify-center">
+                        <div className="flex justify-between mb-8">
+                            <h1 className="text-lg font-semibold">Recursive Deposits</h1>
+                            <Button title="Create RD" primary={true}/>
+                        </div>
+                        <div className="flex justify-between">
+                        <div className="flex border-r border-gray-100 w-full flex-col justify-center items-center">
+                          <p className="text-3xl font-semibold text-center text-gray-800">43</p>
+                          <p className="text-lg text-center text-gray-500">Total RDs</p>
+                        </div>
+                        <div className="flex border-r border-gray-100 w-full flex-col justify-center items-center">
+                          <p className="text-3xl font-semibold text-center text-gray-800">43</p>
+                          <p className="text-lg text-center text-gray-500">Total Investment</p>
+                        </div>
+                        <div className="flex w-full flex-col justify-center items-center">
+                          <p className="text-3xl font-semibold text-center text-gray-800">43</p>
+                          <p className="text-lg text-center text-gray-500">Total APY</p>
+                        </div>
+                        </div>
+                    </div>
+            </Card>
           <AccountBalances/>
+          </HStack>
         </Grid>
       </HStack>
     </AppLayout>

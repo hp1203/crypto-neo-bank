@@ -23,6 +23,7 @@ import { WalletContext } from "../../context/WalletContext";
 import { AuthContext } from "../../context/AuthContext";
 import { RampInstantSDK } from "@ramp-network/ramp-instant-sdk";
 import Image from "next/image";
+import { AccountTransactions } from "../../components/AccountTransactions";
 
 const Dashboard = () => {
   const { account } = useContext(AuthContext)
@@ -57,83 +58,7 @@ const Dashboard = () => {
           <Card className="max-h-40">Dashboard</Card> */}
         </Grid>
         <Grid cols={2}>
-          <Card className="">
-            <div className="flex mb-4 items-center justify-between">
-              <p className="font-semibold text-lg">Latest Transactions</p>
-              <FaArrowRight className="text-sm items-center font-base tracking-widest text-violet-500" />
-            </div>
-            <Table>
-              <TableHead
-                tableHeadings={["#", "Category", "Details", "Change"]}
-              />
-              <TableBody>
-                <TableRow>
-                  <TableCol>1</TableCol>
-                  <TableCol>4,569</TableCol>
-                  <TableCol>340</TableCol>
-                  <TableCol>
-                    <div className="inline-flex items-center">
-                      <FaArrowUp className="fas fa-arrow-up text-emerald-500 mr-2"></FaArrowUp>
-                      46,53%
-                    </div>
-                  </TableCol>
-                </TableRow>
-                <TableRow>
-                  <TableCol>2</TableCol>
-                  <TableCol>3,985</TableCol>
-                  <TableCol>319</TableCol>
-                  <TableCol>
-                    <div className="inline-flex items-center">
-                      <FaArrowDown className="fas fa-arrow-down text-orange-500 mr-2"></FaArrowDown>
-                      46,53%
-                    </div>
-                  </TableCol>
-                </TableRow>
-                <TableRow>
-                  <TableCol>3</TableCol>
-                  <TableCol>3,513</TableCol>
-                  <TableCol>294</TableCol>
-                  <TableCol>
-                    <div className="inline-flex items-center">
-                      <FaArrowDown className="fas fa-arrow-down text-orange-500 mr-2"></FaArrowDown>
-                      36,49%
-                    </div>
-                  </TableCol>
-                </TableRow>
-                <TableRow>
-                  <TableCol>4</TableCol>
-                  <TableCol>2,050</TableCol>
-                  <TableCol>147</TableCol>
-                  <TableCol>
-                    <div className="inline-flex items-center">
-                      <FaArrowUp className="fas fa-arrow-up text-emerald-500 mr-2"></FaArrowUp>
-                      <span>50.87%</span>
-                    </div>
-                  </TableCol>
-                </TableRow>
-                <TableRow>
-                  <TableCol>5</TableCol>
-                  <TableCol>1,795</TableCol>
-                  <TableCol>190</TableCol>
-                  <TableCol>
-                    <div className="inline-flex items-center">
-                      <FaArrowDown className="fas fa-arrow-down text-red-500 mr-2"></FaArrowDown>
-                      46,53%
-                    </div>
-                  </TableCol>
-                </TableRow>
-              </TableBody>
-            </Table>
-            <TableFooter>
-              <a
-                href="#"
-                className="flex items-center justify-center space-x-2"
-              >
-                <span>See More</span>
-                <FaArrowRight className="text-gray-600"></FaArrowRight>
-              </a>
-            </TableFooter>
-          </Card>
+          <AccountTransactions/>
           <AccountBalances/>
         </Grid>
       </HStack>
