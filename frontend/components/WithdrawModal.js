@@ -11,11 +11,11 @@ import Input from "./UI/Input";
 import Textarea from "./UI/Textarea";
 import ImageInput from "./UI/ImageInput";
 import { AccountContext } from "../context/AccountContext";
-import { cryptos } from "../constants/cryptos";
+import { cryptos, cryptos_polygon } from "../constants/cryptos";
 import CryptoDropdown from "./CryptoDropdown";
 
 const WithdrawModal = ({ address, accountNumber }) => {
-  const { isAuthenticated, Moralis } = useMoralis();
+  const { isAuthenticated, Moralis, chainId } = useMoralis();
   const {
     createAccount,
     isLoading,
@@ -26,7 +26,17 @@ const WithdrawModal = ({ address, accountNumber }) => {
     maxBalance,
     withdrawMaximumEth
   } = useContext(AccountContext);
-  const [selected, setSelected] = useState(cryptos[0]);
+
+  // let currencies = [];
+  // if(chainId == 0x13881){
+  //   currencies = cryptos;
+  // }else if(chainId == 0x3){
+  //   currencies = cryptos_polygon;
+  // }else {
+  //   currencies = cryptos;
+  // }
+
+  const [selected, setSelected] = useState(cryptos["0x13881"][0]);
   // const [maxBalance, setMaxBalance] = useState(0.00)
 
   let [isOpen, setIsOpen] = useState(false);
@@ -52,7 +62,7 @@ const WithdrawModal = ({ address, accountNumber }) => {
   };
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    if (selected.symbol == "ETH") {
+    if (selected.symbol == "MATIC") {
       withdrawMaximumEth()
     } else {
       depositERC20ToAccount(
@@ -65,7 +75,7 @@ const WithdrawModal = ({ address, accountNumber }) => {
   };
 
   useEffect(() => {
-    if (selected.symbol == "ETH") {
+    if (selected.symbol == "MATIC") {
       getMaxEthBalance();
     } else {
       getMaxERC20Balance(selected.address);

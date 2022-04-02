@@ -3,17 +3,28 @@ import { Combobox, Transition } from '@headlessui/react'
 import { BiCheck } from "react-icons/bi"
 
 import { HiOutlineSelector } from "react-icons/hi";
-import { cryptos } from '../constants/cryptos'
+import { cryptos } from '../constants/cryptos';
 import Image from 'next/image';
+import { useMoralis } from 'react-moralis';
 
 export default function CryptoDropdown({ selected, setSelected }) {
 //   const [selected, setSelected] = useState(cryptos[0])
   const [query, setQuery] = useState('')
-
+  const { chainId } = useMoralis()
+  
+  // let cryptos[chainId] = [];
+  // if(chainId == 0x13881){
+  //   currencies = cryptos;
+  // }else if(chainId == 0x3){
+  //   currencies = cryptos_polygon;
+  // }else {
+  //   currencies = cryptos;
+  // }
+  console.log("Currencies", cryptos[chainId])
   const filteredcryptos =
     query === ''
-      ? cryptos
-      : cryptos.filter((person) =>
+      ? cryptos[chainId]
+      : cryptos[chainId].filter((person) =>
           person.name
             .toLowerCase()
             .replace(/\s+/g, '')

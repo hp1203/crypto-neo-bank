@@ -176,12 +176,12 @@ const Pay = () => {
       url: APIURL
   });
   useEffect(()=>{
-    console.log("crypto",cryptos[0])
-    getUsdPrice(cryptos[0].priceAddress).then((price)=>{
+    console.log("crypto",cryptos["0x13881"][0])
+    getUsdPrice(cryptos["0x13881"][0].priceAddress).then((price)=>{
       setUnitPrice(price)
       console.log("Price", price)
     })
-  },[cryptos[0].priceAddress])
+  },[cryptos["0x13881"][0].priceAddress])
 
   const handleOnChange = (e) => {
     setAmount(e.target.value.replace(/[^.\d]/g, ""));
@@ -335,7 +335,7 @@ const Pay = () => {
             </div>
             <div className="w-full flex text-gray-400 p-1 mb-4 justify-between items-center">
               <span>$ {parseFloat(usdPrice).toFixed(2)}</span>
-              <span>1 ETH ~ ${parseFloat(unitPrice).toFixed(2)}</span>
+              <span>1 MATIC ~ ${parseFloat(unitPrice).toFixed(2)}</span>
             </div>
             <Button primary className="w-full text-center justify-center mb-2" title="Pay Now" type="submit" loading={isLoading}/>
             {/* <button

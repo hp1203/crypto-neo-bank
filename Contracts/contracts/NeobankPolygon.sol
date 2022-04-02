@@ -9,17 +9,20 @@ import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {cETH} from "./interfaces/IcEth.sol";
 import {CErc20} from "./interfaces/IcErc20.sol";
 
-import { ERC20ToCompound } from "./ERC20ToCompound.sol";
+import { ERC20ToAtoken } from "./ERC20ToAtoken.sol";
+import { ILendingPoolAddressesProvider } from "./interfaces/ILendingPoolAddressesProvider.sol";
+import { IWETHGateway } from "./interfaces/IWETHGateway.sol";
+import { IAToken } from "./interfaces/AToken/IAToken.sol";
+import { ILendingPool } from "./interfaces/ILendingPool.sol";
 
-contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
+contract NeobankPolygon is Ownable, ReentrancyGuard, ERC20ToAtoken {
+
+    ILendingPoolAddressesProvider addressProvider = ILendingPoolAddressesProvider(0x178113104fEcbcD7fF8669a0150721e231F0FD4B);
+    IWETHGateway WethGateway = IWETHGateway(0xee9eE614Ad26963bEc1Bec0D2c92879ae1F209fA);
+    IAToken WMatic = IAToken(0xF45444171435d0aCB08a8af493837eF18e86EE27);
+
     uint256 totalContractBalance = 0;
-    // Ropsten TestNet cETH address
-    address COMPOUND_CETH_ADDRESS = 0x859e9d8a4edadfEDb5A2fF311243af80F85A91b8;
-    cETH ceth = cETH(COMPOUND_CETH_ADDRESS);
-    // enum AccountType {
-    //     CURRENT,
-    //     SAVINGS
-    // }
+    mapping(address => uint) totalER20ContractBalance;
 
     uint256 hashDigits = 10;
     // Equivalent to 10^8 = 8
@@ -32,7 +35,7 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
 
     mapping(address => Account[]) userAccounts;
     mapping(uint256 => uint256) accountEthBalance;
-    mapping(uint256 => uint256) accountCethBalance;
+    mapping(uint256 => uint256) accountAethBalance;
     mapping(uint256 => mapping(address => uint256)) accountERC20Balance;
     mapping(uint256 => mapping(address => uint256)) accountCompoundBalance;
 
@@ -137,10 +140,11 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
     ) public view returns (uint256) {
         // Get amount of cETH and calculate received ETH based on the exchange rate
         // Account memory account = getAccountDetails(_owner, _accountNumber);
-        CErc20 cToken = CErc20(getRelaventCToken(erc20Token));
+        IAToken aToken = IAToken(getRelaventAToken(erc20Token));
+         uint totalScaledBalance = aToken.scaledBalanceOf(address(this));
+        uint currentLiquidityIndex = totalScaledBalance / totalER20ContractBalance[getRelaventAToken(erc20Token)];
         return
-            (accountCompoundBalance[_accountNumber][getRelaventCToken(erc20Token)] *
-                cToken.exchangeRateStored()) / 1e18;
+            accountCompoundBalance[_accountNumber][getRelaventAToken(erc20Token)] / currentLiquidityIndex;
     }
 
     function getEthBalanceWithInterest(uint256 _accountNumber)
@@ -150,9 +154,11 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
     {
         // Get amount of cETH and calculate received ETH based on the exchange rate
         // Account memory account = getAccountDetails(_owner, _accountNumber);
+        uint totalScaledBalance = WMatic.scaledBalanceOf(address(this));
+        uint currentLiquidityIndex = totalScaledBalance / totalContractBalance;
+
         return
-            (accountCethBalance[_accountNumber] * ceth.exchangeRateStored()) /
-            1e18;
+            accountAethBalance[_accountNumber] * currentLiquidityIndex;
     }
 
     function getERC20Balance(uint256 _accountNumber, address currency)
@@ -175,20 +181,20 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
         return accountEthBalance[_accountNumber];
     }
 
-    function transferETH(uint256 _fromAccount, uint256 _toAccount, address receiver, uint256 amount) external {
+    // function transferETH(uint256 _fromAccount, uint256 _toAccount, address receiver, uint256 amount) external {
         
-        require(accountEthBalance[_fromAccount] >= amount, "Low Balance");
+    //     require(accountEthBalance[_fromAccount] >= amount, "Low Balance");
         
-        uint cethUnderlying = (amount / ceth.exchangeRateStored()) * 1e18;
+    //     uint cethUnderlying = (amount / ceth.exchangeRateStored()) * 1e18;
 
-        accountEthBalance[_fromAccount] -= amount;
-        accountCethBalance[_fromAccount] -= cethUnderlying;
+    //     accountEthBalance[_fromAccount] -= amount;
+    //     accountAethBalance[_fromAccount] -= cethUnderlying;
 
-        accountEthBalance[_toAccount] += amount;
-        accountCethBalance[_toAccount] += cethUnderlying;
+    //     accountEthBalance[_toAccount] += amount;
+    //     accountAethBalance[_toAccount] += cethUnderlying;
 
-        emit EthTransferMade(msg.sender, _fromAccount, receiver, _toAccount, amount, block.timestamp);
-    }
+    //     emit EthTransferMade(msg.sender, _fromAccount, receiver, _toAccount, amount, block.timestamp);
+    // }
 
     function depositIntoAccount(
         address _owner,
@@ -202,25 +208,28 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
         //     }
         // }
         // // Account userAccount = getAccountDetails(_owner, _accountNumber);
+        address poolAddress = addressProvider.getLendingPool(); 
+        // ILendingPool lendingPool = ILendingPool(poolAddress);
 
         require(msg.value >= _amount, "Amount sent is less.");
         require(msg.value >= 0.01 ether, "Minimum deposit amount is 0.01 Eth");
 
-        uint256 cEthBeforeMint = ceth.balanceOf(address(this));
+        uint256 aEthBeforeMint = WMatic.balanceOf(address(this));
         // send ethers to mint()
-        ceth.mint{value: msg.value}();
+        // WMatic.mint{value: msg.value}();
+        WethGateway.depositETH{value: msg.value}(poolAddress, address(this), 0);
 
-        uint256 cEthAfterMint = ceth.balanceOf(address(this));
+        uint256 aEthAfterMint = WMatic.balanceOf(address(this));
 
-        uint256 cEthUser = cEthAfterMint - cEthBeforeMint;
+        uint256 aEthUser = aEthAfterMint - aEthBeforeMint;
 
         accountEthBalance[_accountNumber] += msg.value;
-        accountCethBalance[_accountNumber] += cEthUser;
+        accountAethBalance[_accountNumber] += aEthUser;
 
-        // userAccounts[_owner][index].balance += cEthUser;
+        // userAccounts[_owner][index].balance += aEthUser;
         // userAccounts[_owner][index].ethBalance += msg.value;
 
-        totalContractBalance += cEthUser;
+        totalContractBalance += msg.value;
 
         emit EthDepositMade(
             msg.sender,
@@ -237,35 +246,39 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
         uint256 amount,
         address currency
     ) external payable {
-        CErc20 cToken = CErc20(getRelaventCToken(currency));
+        IAToken aToken = IAToken(getRelaventAToken(currency));
         IERC20 erc20 = IERC20(currency);
 
+        address poolAddress = addressProvider.getLendingPool(); 
+        ILendingPool lendingPool = ILendingPool(poolAddress);
         // require(msg.value >= _amount, "Amount sent is less.");
         // require(msg.value >= 0.01 ether, "Minimum deposit amount is 0.01 Eth");
 
-        uint256 cTokenBeforeMint = cToken.balanceOf(address(this));
+        uint256 aTokenBeforeMint = aToken.balanceOf(address(this));
         // send ethers to mint()
         // uint256 approvedAmount = _approveApprovedTokensToCompound(
         //     currency
         // );
          // Approve the amount of tokens to compound
-        erc20.approve(getRelaventCToken(currency), amount);
+        erc20.approve(getRelaventAToken(currency), amount);
         // // Approve the amount of tokens to Uniswap router
         // erc20.approve(cERC20, msg.value);
 
-        cToken.mint(amount);
+        // aToken.mint(amount);
+        lendingPool.deposit(getRelaventAToken(currency), amount, address(this), 0);
 
-        uint256 cTokenAfterMint = cToken.balanceOf(address(this));
+        uint256 aTokenAfterMint = aToken.balanceOf(address(this));
 
-        uint256 cTokenUser = cTokenAfterMint - cTokenBeforeMint;
+        uint256 aTokenUser = aTokenAfterMint - aTokenBeforeMint;
 
         accountERC20Balance[_accountNumber][currency] += amount;
-        accountCompoundBalance[_accountNumber][getRelaventCToken(currency)] += cTokenUser;
+        accountCompoundBalance[_accountNumber][getRelaventAToken(currency)] += aTokenUser;
 
         // userAccounts[_owner][index].balance += cEthUser;
         // userAccounts[_owner][index].ethBalance += msg.value;
 
         // totalContractBalance += cTokenUser;
+        totalER20ContractBalance[getRelaventAToken(currency)] += amount;
 
         emit Erc20DepositMade(
             msg.sender,
@@ -290,11 +303,16 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
             }
         }
         require(exists, "Account not found.");
+        
+        address poolAddress = addressProvider.getLendingPool(); 
+        ILendingPool lendingPool = ILendingPool(poolAddress);
+
         address payable transferTo = payable(msg.sender); // get payable to transfer towards
-        ceth.redeem(accountCethBalance[_accountNumber]); // Redeem that cETH
+        // .redeem(accountAethBalance[_accountNumber]); // Redeem that cETH
+        lendingPool.withdraw(0xF45444171435d0aCB08a8af493837eF18e86EE27, accountAethBalance[_accountNumber], address(this));
         uint256 amountToWithdraw = getEthBalanceWithInterest(_accountNumber); // Avalaible amount of $ that can be Withdrawn
         // totalContractBalance -= userAccounts[msg.sender][index].balance;
-        accountCethBalance[_accountNumber] = 0;
+        accountAethBalance[_accountNumber] = 0;
         accountEthBalance[_accountNumber] = 0;
         transferTo.transfer(amountToWithdraw);
         emit EthWithdrawMade(
@@ -316,6 +334,9 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
         bool exists = false;
         // uint cEth =  getRedeemableCEth(amountRequested);
 
+        address poolAddress = addressProvider.getLendingPool(); 
+        ILendingPool lendingPool = ILendingPool(poolAddress);
+
         for (uint256 i = 0; i < userAccounts[msg.sender].length; i++) {
             if (userAccounts[msg.sender][i].accountNumber == _accountNumber) {
                 index = i;
@@ -328,11 +349,21 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
             "Your balance is lower than the requested amount"
         );
         address payable transferTo = payable(msg.sender); // get payable to transfer to sender's address
+        // uint256 cEthWithdrawn = _withdrawCEther(amountRequested);
 
-        uint256 cEthWithdrawn = _withdrawCEther(amountRequested);
+        uint256 aEthBeforeWithdraw = WMatic.balanceOf(address(this));
 
-        totalContractBalance -= cEthWithdrawn;
-        accountCethBalance[_accountNumber] -= cEthWithdrawn;
+        lendingPool.withdraw(0xF45444171435d0aCB08a8af493837eF18e86EE27, amountRequested, address(this));
+        // send ethers to mint()
+        // WMatic.mint{value: msg.value}();
+        // WethGateway.depositETH{value: msg.sender}(poolAddress, address(this), 0);
+
+        uint256 aEthAfterWithdraw = WMatic.balanceOf(address(this));
+
+        uint256 aEthUser = aEthAfterWithdraw - aEthBeforeWithdraw;
+
+        totalContractBalance -= aEthUser;
+        accountAethBalance[_accountNumber] -= aEthUser;
         accountEthBalance[_accountNumber] -= amountRequested;
         transferTo.transfer(amountRequested);
         emit EthWithdrawMade(
@@ -354,8 +385,13 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
     {
         uint256 index = 0;
         bool exists = false;
+        uint256 amount = amountRequested;
         // uint cEth =  getRedeemableCEth(amountRequested);
         IERC20 erc20Token = IERC20(_erc20Token);
+        address poolAddress = addressProvider.getLendingPool(); 
+        ILendingPool lendingPool = ILendingPool(poolAddress);
+        IAToken aToken = IAToken(getRelaventAToken(_erc20Token));
+
         for (uint256 i = 0; i < userAccounts[msg.sender].length; i++) {
             if (userAccounts[msg.sender][i].accountNumber == _accountNumber) {
                 index = i;
@@ -364,24 +400,36 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
         }
         require(!exists, "Account not found.");
         require(
-            amountRequested <= getERC20BalanceWithInterest(_accountNumber, getRelaventCToken(_erc20Token)),
+            amountRequested <= getERC20BalanceWithInterest(_accountNumber, getRelaventAToken(_erc20Token)),
             "Your balance is smaller than the requested amount"
         );
         address payable transferTo = payable(msg.sender); // get payable to transfer to sender's address
 
-        uint256 cErc20Withdrawn = _withdrawCERC20(amountRequested, getRelaventCToken(_erc20Token));
+        uint256 aERC20BeforeWithdraw = aToken.balanceOf(address(this));
 
-        totalContractBalance -= cErc20Withdrawn;
-        accountCompoundBalance[_accountNumber][getRelaventCToken(_erc20Token)] -= cErc20Withdrawn;
+        lendingPool.withdraw(getRelaventAToken(_erc20Token), amountRequested, address(this));
+        // send ethers to mint()
+        // aToken.mint{value: msg.value}();
+        // WethGateway.depositETH{value: msg.sender}(poolAddress, address(this), 0);
+
+        uint256 aERC20AfterWithdraw = aToken.balanceOf(address(this));
+
+        uint256 aERC20User = aERC20AfterWithdraw - aERC20BeforeWithdraw;
+
+        // uint256 cErc20Withdrawn = _withdrawCERC20(amountRequested, getRelaventAToken(_erc20Token));
+
+        totalER20ContractBalance[getRelaventAToken(_erc20Token)] -= aERC20User;
+        accountCompoundBalance[_accountNumber][getRelaventAToken(_erc20Token)] -= aERC20User;
         accountERC20Balance[_accountNumber][_erc20Token] -= amountRequested;
         // transferTo.transfer(amountRequested);
-        erc20Token.transfer(transferTo, amountRequested);
+        erc20Token.transfer(transferTo, amount);
+
         emit Erc20DepositMade(
             msg.sender,
             msg.sender,
             _accountNumber,
             _erc20Token,
-            amountRequested,
+            amount,
             block.timestamp
         );
     }
@@ -390,44 +438,43 @@ contract Neobank is Ownable, ReentrancyGuard, ERC20ToCompound {
      * @dev Redeems cETH for withdraw
      * @return Withdrawn cETH
      */
-    function _withdrawCEther(uint256 _amountOfEth) internal returns (uint256) {
-        uint256 cEthContractBefore = ceth.balanceOf(address(this));
-        ceth.redeemUnderlying(_amountOfEth);
-        uint256 cEthContractAfter = ceth.balanceOf(address(this));
+    // function _withdrawCEther(uint256 _amountOfEth) internal returns (uint256) {
+    //     uint256 cEthContractBefore = ceth.balanceOf(address(this));
+    //     ceth.redeemUnderlying(_amountOfEth);
+    //     uint256 cEthContractAfter = ceth.balanceOf(address(this));
 
-        uint256 cEthWithdrawn = cEthContractBefore - cEthContractAfter;
+    //     uint256 cEthWithdrawn = cEthContractBefore - cEthContractAfter;
 
-        return cEthWithdrawn;
-    }
+    //     return cEthWithdrawn;
+    // }
 
     /**
      * @dev Redeems cETH for withdraw
      * @return Withdrawn cETH
      */
-    function _withdrawCERC20(uint256 _amountOfERC20, address cERC20Token) internal returns (uint256) {
-        CErc20 cToken = CErc20(cERC20Token);
-        uint256 cERC20ContractBefore = cToken.balanceOf(address(this));
-        cToken.redeemUnderlying(_amountOfERC20);
-        uint256 cERC20ContractAfter = cToken.balanceOf(address(this));
+    // function _withdrawCERC20(uint256 _amountOfERC20, address cERC20Token) internal returns (uint256) {
+    //     CErc20 cToken = CErc20(cERC20Token);
+    //     uint256 cERC20ContractBefore = cToken.balanceOf(address(this));
+    //     cToken.redeemUnderlying(_amountOfERC20);
+    //     uint256 cERC20ContractAfter = cToken.balanceOf(address(this));
 
-        uint256 cERC20Withdrawn = cERC20ContractBefore - cERC20ContractAfter;
+    //     uint256 cERC20Withdrawn = cERC20ContractBefore - cERC20ContractAfter;
 
-        return cERC20Withdrawn;
-    }
+    //     return cERC20Withdrawn;
+    // }
 
-    function getExchangeRate() internal view returns (uint256) {
-        return ceth.exchangeRateStored();
-    }
+    // function getExchangeRate() internal view returns (uint256) {
+    //     return ceth.exchangeRateStored();
+    // }
 
     function getTotalEthBalance() public view returns (uint256) {
         // return ceth.balanceOf(address(this));
-        return (ceth.balanceOf(address(this)) * ceth.exchangeRateStored()) /
-            1e18;
+        return WMatic.scaledBalanceOf(address(this));
     }
 
     function getTotalErc20Balance(address _erc20Token) public view returns (uint256) {
         // return ceth.balanceOf(address(this));
-        CErc20 cToken = CErc20(getRelaventCToken(_erc20Token));
+        CErc20 cToken = CErc20(getRelaventAToken(_erc20Token));
         return (cToken.balanceOf(address(this)) * cToken.exchangeRateStored()) /
             1e18;
     }

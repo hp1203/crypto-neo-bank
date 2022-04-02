@@ -8,6 +8,7 @@ import Image from "next/image";
 import DepositModal from "./DepositModal";
 import { AuthContext } from "../context/AuthContext";
 import WithdrawModal from "./WithdrawModal";
+import TransferFunds from "./TransferFunds";
 export const AccountStats = (props) => {
   const { selectedAccount, getIpfsData, maxUSDBalance } = useContext(AccountContext)
   const { account } = useContext(AuthContext)
@@ -77,6 +78,7 @@ export const AccountStats = (props) => {
           {/* <Button title="Deposit"/> */}
           <DepositModal address={account} accountNumber={selectedAccount.accountNumber}/>
           <WithdrawModal address={account} accountNumber={selectedAccount.accountNumber}/>
+          {/* <TransferFunds address={account} accountNumber={selectedAccount.accountNumber}/> */}
           </div>
           {
               metadata.image &&

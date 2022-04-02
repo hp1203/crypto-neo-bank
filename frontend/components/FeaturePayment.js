@@ -12,7 +12,7 @@ const FeaturePayment = () => {
     </div>
     <div className="flex flex-wrap -m-4 items-center justify-center">
     {
-      cryptos.map((crypto, index) => (
+      cryptos["0x13881"].map((crypto, index) => (
       <div className="flex w-64 flex-col mb-8" key={index}>
         <Image src={crypto.icon} objectFit="contain" width={'60px'} height={'60px'}/>
         <p className="text-center mt-2 font-semibold">{crypto.name}</p>

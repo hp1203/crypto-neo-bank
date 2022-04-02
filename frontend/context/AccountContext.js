@@ -7,8 +7,10 @@ import WalletConnectProvider from "@walletconnect/web3-provider";
 import { ethers } from "ethers";
 import { useMoralis } from "react-moralis";
 
-import { NEOBANK_ADDRESS } from "../constants";
-import NeobankAbi from "../artifacts/Newbank.sol/Neobank.json";
+import { NEOBANK_ADDRESS, NEOBANK_ADDRESS_POLYGON } from "../constants";
+// import NeobankAbi from "../artifacts/Newbank.sol/Neobank.json";
+import NeobankAbiPolygon from "../artifacts/NeobankPolygon.sol/NeobankPolygon.json";
+import NeobankAbiEther from "../artifacts/Newbank.sol/Neobank.json";
 
 import { WalletContext } from "./WalletContext";
 import useWeb3Modal from "../hooks/useWeb3Modal";
@@ -28,8 +30,24 @@ export const AccountProvider = ({ children }) => {
   const [maxBalance, setMaxBalance] = useState(0.00)
   const [maxUSDBalance, setMaxUSDBalance] = useState(0)
   // const [ provider, loadWeb3Modal ] = useWeb3Modal();
-  const { Moralis, Util } = useMoralis();
-  
+  const { Moralis, Util, chainId } = useMoralis();
+  let NeobankAbi = null;
+  // let cryptos[chainId] = [];
+  // let NEOBANK_ADDRESS[chainId] = null;
+  if(chainId == 0x3){
+    // currencies = cryptos;
+    NeobankAbi = NeobankAbiEther;
+    // NEOBANK_ADDRESS[chainId] = NEOBANK_ADDRESS;
+  }else if(chainId == 0x13881){
+    // currencies = cryptos_polygon;
+    NeobankAbi = NeobankAbiPolygon;
+    // NEOBANK_ADDRESS[chainId] = NEOBANK_ADDRESS_POLYGON;
+  }else {
+    // cryptos[chainId] = cryptos;
+    NeobankAbi = NeobankAbiEther;
+    // NEOBANK_ADDRESS[chainId] = NEOBANK_ADDRESS;
+  }
+
   const getIpfsData = async (metadataUrl) => {
     // await fetch(metadataUrl).then(res => res.json()).then(result => result.data).catch(console.log);
     let data;
@@ -48,6 +66,32 @@ export const AccountProvider = ({ children }) => {
     return data;
   };
 
+  const TransferEth = async (address, toAccount, amount) => {
+    try {
+
+      const provider = await Moralis.enableWeb3();
+        // if(provider) {
+        // const provider = new ethers.providers.Web3Provider(web3Provider);
+        const signer = provider.getSigner();
+        // const provider = getProviderOrSigner();
+        // console.log("signer", walletConnected)
+        const neoBankContract = new ethers.Contract(
+          NEOBANK_ADDRESS["0x13881"],
+          NeobankAbi.abi,
+          signer
+        );
+  
+        const txHash = await neoBankContract.transferETH(selectedAccount.accountNumber.toString(), toAccount.toString(), address.toString(), ethers.utils.parseEther(amount))
+        setIsLoading(true);
+        console.log(`Loading - ${txHash.hash}`);
+        await txHash.wait();
+        setIsLoading(false);
+        console.log(`Success - ${txHash.hash}`);
+    } catch(err) {
+      console.log(err)
+    }
+  }
+
   const withdrawMaximumEth = async () => {
     try {
 
@@ -58,7 +102,7 @@ export const AccountProvider = ({ children }) => {
         // const provider = getProviderOrSigner();
         // console.log("signer", walletConnected)
         const neoBankContract = new ethers.Contract(
-          NEOBANK_ADDRESS,
+          NEOBANK_ADDRESS["0x13881"],
           NeobankAbi.abi,
           signer
         );
@@ -84,7 +128,7 @@ export const AccountProvider = ({ children }) => {
         // const provider = getProviderOrSigner();
         // console.log("signer", walletConnected)
         const neoBankContract = new ethers.Contract(
-          NEOBANK_ADDRESS,
+          NEOBANK_ADDRESS["0x13881"],
           NeobankAbi.abi,
           signer
         );
@@ -104,7 +148,7 @@ export const AccountProvider = ({ children }) => {
         // const provider = getProviderOrSigner();
         // console.log("signer", walletConnected)
         const neoBankContract = new ethers.Contract(
-          NEOBANK_ADDRESS,
+          NEOBANK_ADDRESS["0x13881"],
           NeobankAbi.abi,
           signer
         );
@@ -126,27 +170,28 @@ export const AccountProvider = ({ children }) => {
       // const provider = getProviderOrSigner();
       // console.log("signer", walletConnected)
       const neoBankContract = new ethers.Contract(
-        NEOBANK_ADDRESS,
+        NEOBANK_ADDRESS["0x13881"],
         NeobankAbi.abi,
         signer
       );
 
+      console.log("Neo",neoBankContract)
       const ethBalance = await neoBankContract.getEthBalance(selectedAccount['accountNumber'].toString());
       const ethBalanceWithInterest = await neoBankContract.getEthBalanceWithInterest(selectedAccount['accountNumber'].toString());
       console.log("EthBalance", ethBalance.toString())
       // const index = Balances.findIndex(x => x.symbol ==="ETH");
       let balances = [];
       balances.push({
-          name: cryptos[0].name,
-          symbol: cryptos[0].symbol,
-          icon: cryptos[0].icon,
+          name: cryptos["0x13881"][0].name,
+          symbol: cryptos["0x13881"][0].symbol,
+          icon: cryptos["0x13881"][0].icon,
           amount: ethers.utils.formatEther(ethBalance.toString()),
           apy: ethers.utils.formatEther(ethBalanceWithInterest.toString() - ethBalance.toString())
         })
         setTimeout(() => {
           
         }, 5000);
-      getUsdPrice(cryptos[0].priceAddress).then((price) => {
+      getUsdPrice(cryptos["0x13881"][0].priceAddress, "0x13881").then((price) => {
         console.log("in")
         console.log("Price", price, typeof price)
         console.log("BalWithInt", parseFloat(ethers.utils.formatEther(ethBalanceWithInterest.toString())), typeof parseFloat(ethers.utils.formatEther(ethBalanceWithInterest.toString())))
@@ -158,22 +203,22 @@ export const AccountProvider = ({ children }) => {
       })
       // setBalances(balances)
       
-      // for(var i = 1; i < cryptos.length; i++){
-      //   const balance = await neoBankContract.getERC20Balance(selectedAccount.accountNumber.toString(), cryptos[i].address);
-      //   console.log("Balance of ", cryptos[i].name, balance)
-      //   const balanceWithInterest = await neoBankContract.getERC20BalanceWithInterest(selectedAccount.accountNumber.toString(), cryptos[i].address);
+      // for(var i = 1; i < cryptos["0x13881"].length; i++){
+      //   const balance = await neoBankContract.getERC20Balance(selectedAccount.accountNumber.toString(), cryptos["0x13881"][i].address);
+      //   console.log("Balance of ", cryptos["0x13881"][i].name, balance)
+      //   const balanceWithInterest = await neoBankContract.getERC20BalanceWithInterest(selectedAccount.accountNumber.toString(), cryptos["0x13881"][i].address);
       //   // console.log("EthBalance", ethBalance.toString())
       //   balances.push({
-      //     name: cryptos[i].name,
-      //     symbol: cryptos[i].symbol,
-      //     icon: cryptos[i].icon,
+      //     name: cryptos["0x13881"][i].name,
+      //     symbol: cryptos["0x13881"][i].symbol,
+      //     icon: cryptos["0x13881"][i].icon,
       //     amount: ethers.utils.formatEther(balance.toString()),
       //     apy: ethers.utils.formatEther(balanceWithInterest.toString() - balance.toString())
       //   })
       //   setTimeout(() => {
           
       //   }, 5000);
-      //   getUsdPrice(cryptos[i].priceAddress).then((price) => {
+      //   getUsdPrice(cryptos["0x13881"][i].priceAddress, "0x13881").then((price) => {
       //     console.log("in")
       //     console.log("Price", price, typeof price)
       //     console.log("BalWithInt", parseFloat(ethers.utils.formatEther(ethBalanceWithInterest.toString())), typeof parseFloat(ethers.utils.formatEther(ethBalanceWithInterest.toString())))
@@ -202,7 +247,7 @@ export const AccountProvider = ({ children }) => {
       const signer = provider.getSigner();
       const ercToken = new ethers.Contract(token.address, token.abi, signer);
       console.log("Contract", ercToken)
-      const tx = await ercToken.transfer(NEOBANK_ADDRESS, ethers.utils.parseEther(amount));
+      const tx = await ercToken.transfer(NEOBANK_ADDRESS["0x13881"], ethers.utils.parseEther(amount));
       setIsLoading(true);
       console.log(`Loading - ${tx.hash}`);
       await tx.wait();
@@ -211,7 +256,7 @@ export const AccountProvider = ({ children }) => {
       // const provider = getProviderOrSigner();
       // console.log("signer", walletConnected)
       const neoBankContract = new ethers.Contract(
-        NEOBANK_ADDRESS,
+        NEOBANK_ADDRESS["0x13881"],
         NeobankAbi.abi,
         signer
       );
@@ -237,7 +282,7 @@ export const AccountProvider = ({ children }) => {
       // const provider = getProviderOrSigner();
       // console.log("signer", walletConnected)
       const neoBankContract = new ethers.Contract(
-        NEOBANK_ADDRESS,
+        NEOBANK_ADDRESS["0x13881"],
         NeobankAbi.abi,
         signer
       );
@@ -264,27 +309,27 @@ export const AccountProvider = ({ children }) => {
       // const provider = getProviderOrSigner();
       // console.log("signer", walletConnected)
       const neoBankContract = new ethers.Contract(
-        NEOBANK_ADDRESS,
+        NEOBANK_ADDRESS["0x13881"],
         NeobankAbi.abi,
         signer
       );
       let balances = [];
       
-      for(var i = 1; i < cryptos.length(); i++){
-        const balance = await neoBankContract.getERC20Balance(selectedAccount.accountNumber.toString(), cryptos[i].address);
-        const balanceWithInterest = await neoBankContract.getERC20BalanceWithInterest(selectedAccount.accountNumber.toString(), cryptos[i].address);
+      for(var i = 1; i < cryptos["0x13881"].length(); i++){
+        const balance = await neoBankContract.getERC20Balance(selectedAccount.accountNumber.toString(), cryptos["0x13881"][i].address);
+        const balanceWithInterest = await neoBankContract.getERC20BalanceWithInterest(selectedAccount.accountNumber.toString(), cryptos["0x13881"][i].address);
         // console.log("EthBalance", ethBalance.toString())
         balances[i] = {
-          name: cryptos[i].name,
-          symbol: cryptos[i].symbol,
-          icon: cryptos[i].icon,
+          name: cryptos["0x13881"][i].name,
+          symbol: cryptos["0x13881"][i].symbol,
+          icon: cryptos["0x13881"][i].icon,
           amount: ethers.utils.formatEther(balance.toString()),
           apy: ethers.utils.formatEther(balanceWithInterest.toString() - balance.toString())
         }
         setTimeout(() => {
           
         }, 5000);
-        await getUsdPrice(cryptos[i].priceAddress).then((price) => {
+        await getUsdPrice(cryptos["0x13881"][i].priceAddress, "0x13881").then((price) => {
           setMaxUSDBalance(maxUSDBalance + (ethers.utils.formatEther(balanceWithInterest) * price))
         })
       }
@@ -305,39 +350,38 @@ export const AccountProvider = ({ children }) => {
 
   },[selectedAccount])
 
-  useEffect(async () => {
-    const getMyAccounts = async () => {
-      try {
-        const provider = await Moralis.enableWeb3();
-        // if(provider) {
-        // const provider = new ethers.providers.Web3Provider(web3Provider);
-        const signer = provider.getSigner();
-        // const provider = getProviderOrSigner();
-        // console.log("signer", walletConnected)
-        const neoBankContract = new ethers.Contract(
-          NEOBANK_ADDRESS,
-          NeobankAbi.abi,
-          signer
-        );
-        const allAccounts = await neoBankContract.myAccounts();
+  const getMyAccounts = async () => {
+    try {
+      const provider = await Moralis.enableWeb3();
+      // if(provider) {
+      // const provider = new ethers.providers.Web3Provider(web3Provider);
+      const signer = provider.getSigner();
+      // const provider = getProviderOrSigner();
+      // console.log("Address", NEOBANK_ADDRESS["0x13881"])
+      const neoBankContract = new ethers.Contract(
+        NEOBANK_ADDRESS["0x13881"],
+        NeobankAbi.abi,
+        signer
+      );
+      console.log("COntract", neoBankContract)
+      const allAccounts = await neoBankContract.myAccounts();
 
-        setSelectedAccount(allAccounts[0]);
-        setAccounts(allAccounts);
-        console.log("Accounts", allAccounts);
-        setTimeout(() => {
-          
-        }, 5000);
-  
-        // }
-        // loadWeb3Modal()
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    await getMyAccounts();
-    
-    
-  }, []);
+      setSelectedAccount(allAccounts[0]);
+      setAccounts(allAccounts);
+      console.log("Accounts", allAccounts);
+      setTimeout(() => {
+        
+      }, 5000);
+
+      // }
+      // loadWeb3Modal()
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  useEffect(() => {
+    getMyAccounts();
+  }, [chainId]);
 
   const createAccount = async (name, metadata) => {
     try {
@@ -348,7 +392,7 @@ export const AccountProvider = ({ children }) => {
       // const provider = getProviderOrSigner();
       // console.log("signer", walletConnected)
       const neoBankContract = new ethers.Contract(
-        NEOBANK_ADDRESS,
+        NEOBANK_ADDRESS[chainId],
         NeobankAbi.abi,
         signer
       );
@@ -389,7 +433,7 @@ export const AccountProvider = ({ children }) => {
         getMaxEthBalance,
         getMaxERC20Balance,
         maxBalance,
-        withdrawMaximumEth,getEthBalance,getERC20Balance,maxUSDBalance
+        withdrawMaximumEth,getEthBalance,getERC20Balance,maxUSDBalance,TransferEth
       }}
     >
       {children}

@@ -8,7 +8,7 @@ async function main() {
     console.log("Account balance:", (await deployer.getBalance()).toString());
   
     const Payments = await ethers.getContractFactory("Payments");
-    const payments = await Payments.deploy("0x34D476A3d019a319c1Db824D22980e0B8C4F1E80");
+    const payments = await Payments.deploy("0xAdE9d003Db8d1bF99eEF9209D3770a7632C11315");
   
     console.log("Payments address:", payments.address);
   }

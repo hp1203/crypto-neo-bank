@@ -2,6 +2,7 @@ import { BiMenu } from 'react-icons/bi';
 import { useToggle } from '../provider/context';
 import ProfileDropdown from "../../ProfileDropdown";
 import Account from '../../Account';
+import NetworkSelection from '../../NetworkSelection';
 export default function TopNavigation() {
   const { toggle } = useToggle();
   return (
@@ -21,7 +22,8 @@ export default function TopNavigation() {
               </button>
             </div>
           </div>
-          <div className="flex items-center justify-end ml-5 p-1 relative w-full sm:mr-0 sm:right-auto">
+          <div className="flex items-center space-x-3 justify-end ml-5 p-1 relative w-full sm:mr-0 sm:right-auto">
+            {/* <NetworkSelection/> */}
             <Account/>
           </div>
         </div>

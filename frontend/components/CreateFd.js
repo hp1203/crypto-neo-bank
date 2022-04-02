@@ -12,17 +12,18 @@ import Textarea from "./UI/Textarea";
 import ImageInput from "./UI/ImageInput";
 import CryptoDropdown from "../components/CryptoDropdown"
 
-import {PAYMENT_ADDRESS} from "../constants"
-import PaymentABI from "../artifacts/Payments.sol/Payments.json";
-import { ethers } from "ethers";
+import {INVESTMENT_ADDRESS, PAYMENT_ADDRESS} from "../constants"
+import InvestmentABI from "../artifacts/Invetments.sol/Investments.json";
+import { ethers, utils } from "ethers";
 import { cryptos } from "../constants/cryptos";
 const CreateFd = (props) => {
   const { isAuthenticated, Moralis } = useMoralis();
-  const [type, setType] = useState(0);
+  const { chainId } = props;
+  const [duration, setDuration] = useState(15);
   const [isLoading, setIsLoading] = useState(false);
   let [isOpen, setIsOpen] = useState(false);
-
-  const [selected, setSelected] = useState(cryptos[0]);
+  setTimeout(()=>{},10000)
+  const [selected, setSelected] = useState(null);
   const [usdPrice, setUsdPrice] = useState(0.0);
   const [unitPrice, setUnitPrice] = useState(0.0);
 
@@ -39,33 +40,11 @@ const CreateFd = (props) => {
     setIsOpen(true);
   }
 
-  function create_UUID(){
-    var dt = new Date().getTime();
-    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = (dt + Math.random()*16)%16 | 0;
-        dt = Math.floor(dt/16);
-        return (c=='x' ? r :(r&0x3|0x8)).toString(16);
-    });
-    return uuid;
-}
-
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    const file = new Moralis.File(formData.image.name, formData.image);
-    await file.saveIPFS();
-    console.log(file.ipfs(), file.hash());
-
-    const object = {
-      name: formData.name,
-      description: formData.description,
-      image: file.ipfs(),
-    };
-    const metadata = new Moralis.File("metadata.json", {
-      base64: btoa(JSON.stringify(object)),
-    });
-    await metadata.saveIPFS();
+    
     try {
       const provider = await Moralis.enableWeb3();
       // if(provider) {
@@ -73,14 +52,14 @@ const CreateFd = (props) => {
       const signer = provider.getSigner();
       // const provider = getProviderOrSigner();
       // console.log("signer", walletConnected)
-      const paymentContract = new ethers.Contract(
-        PAYMENT_ADDRESS,
-        PaymentABI.abi,
+      const InvestmentContract = new ethers.Contract(
+        INVESTMENT_ADDRESS,
+        InvestmentABI.abi,
         signer
       );
-      console.log("Contract", paymentContract)
+      console.log("Contract", InvestmentContract)
 
-      const txHash = await paymentContract.createPaymentLink(create_UUID(), type, formData.address.toString(), formData.account.toString(), metadata);
+      const txHash = await InvestmentContract.connect(signer).makeFd(formData.name, duration,  { value: utils.parseEther(formData.amount) });
 
       setIsLoading(true);
       console.log(`Loading - ${txHash.hash}`);
@@ -107,7 +86,16 @@ const CreateFd = (props) => {
     });
     console.log(formData);
   };
+  const setCrypto = () => {
+    if(chainId){
 
+      setSelected(cryptos["0x13881"][0])
+    }
+  }
+
+  useEffect(() => {
+    setCrypto()
+  },[chainId])
   if (isAuthenticated) {
     return (
       <>
@@ -168,7 +156,8 @@ const CreateFd = (props) => {
                   </Dialog.Title>
                   <div className="mt-2 ">
                     <form onSubmit={handleSubmit}>
-                      
+                      {
+                        selected &&
                       <Input
                         label="Name"
                         type="text"
@@ -177,21 +166,17 @@ const CreateFd = (props) => {
                         placeholder="Enter name for Account"
                         onChange={handleChange}
                       />
+                      }
 
-                      <Input
-                        label="Address"
-                        type="text"
-                        name="address"
-                        value={formData.address}
-                        placeholder="Enter your wallet address"
-                        onChange={handleChange}
-                      />
                       <div className="flex flex-col space-y-1 mb-2">
         <label className="font-medium text-gray-600">Amount</label>
 
                       <div className="w-full bg-gray-50 flex border border-gray-100 rounded-lg p-1 mb-2">
                         <input type="text" min={0.01} placeholder="Enter Amount" className="w-full bg-transparent focus:ring-0 border-0  right-0 py-2 pl-3  text-sm leading-5 text-gray-600 font-semibold" onChange={handleChange} name="amount" value={formData.amount}/>
                         <div className="flex items-center w-24 space-x-2">
+                        {
+                        selected &&
+                        <>
                         <Image
                             alt={selected.name}
                           src={selected.icon}
@@ -205,6 +190,8 @@ const CreateFd = (props) => {
                         >
                           {selected.symbol}
                         </span>
+                        </>
+                        }
                         </div>
                         {/* <CryptoDropdown
                       selected={selected}
@@ -218,7 +205,7 @@ const CreateFd = (props) => {
                         </label>
                         <select
                           className={`border-gray-100 focus:ring-1 focus-visible:ring-violet-500 bg-gray-50 rounded-lg`}
-                          onChange={(e) => setType(e.target.value)}
+                          onChange={(e) => setDuration(e.target.value)}
                         >
                           <option value="15">15 Days</option>
                           <option value="30">30 Days</option>

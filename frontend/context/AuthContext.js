@@ -10,7 +10,7 @@ export const AuthContext = React.createContext();
 export const AuthProvider = ({ children }) => {
   // walletConnected keep track of whether the user's wallet is connected or not
 
-  const { authenticate, isAuthenticated, isAuthenticating, user, account, logout } = useMoralis();
+  const { authenticate, isAuthenticated, isAuthenticating, user, account, logout, chainId } = useMoralis();
 
   const login = async () => {
     if (!isAuthenticated) {
@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider
       value={{
-        login, user, account, logOut
+        login, user, account, logOut, chainId
       }}
     >
       {children}

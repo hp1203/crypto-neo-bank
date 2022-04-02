@@ -23,10 +23,12 @@ import { utils } from "ethers";
 import { getEllipsisTxt } from "../../helpers/formatters";
 import { cryptos } from "../../constants/cryptos";
 import moment from "moment";
+import { useMoralis } from "react-moralis";
 
 const Transactions = () => {
   const { account } = useContext(AuthContext);
   const [transactions, setTransactions] = useState([]);
+  const { chainId } = useMoralis()
   const APIURL = "https://api.thegraph.com/subgraphs/name/hp1203/cryptoneo";
   const query = `
     query {
@@ -99,7 +101,7 @@ const Transactions = () => {
                   <TableCol>{transaction.currency}</TableCol>
                   <TableCol>
                     {
-                      cryptos.filter(
+                      cryptos["0x13881"].filter(
                         (crypto) => crypto.address == transaction.token
                       ).name
                     }

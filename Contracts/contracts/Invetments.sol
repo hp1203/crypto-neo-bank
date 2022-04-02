@@ -22,13 +22,11 @@ contract Investments is ReentrancyGuard, Ownable {
         uint256 fdId;
         address payable owner;
         string name;
-        string _type; // Flexible, Locked
         uint256 startDate;
         uint256 endDate;
         uint256 amount;
         uint256 redeemedAmount;
         address currency;
-        uint256 duration;
         uint256 cTokens;
         bool isActive;
     }
@@ -36,12 +34,10 @@ contract Investments is ReentrancyGuard, Ownable {
         uint256 rdId;
         address payable owner;
         string name;
-        string _type; // Flexible, Locked
         uint256 startDate;
         uint256 endDate;
         uint256 amount;
         uint256 redeemedAmount;
-        uint256 sip;
         uint256 frequency;
         address currency;
         uint256 cTokens;
@@ -57,13 +53,11 @@ contract Investments is ReentrancyGuard, Ownable {
         uint256 fdId,
         address owner,
         string name,
-        string _type,
         uint256 startDate,
         uint256 endDate,
         uint256 amount,
         uint256 redeemedAmount,
         address currency,
-        uint256 duration,
         uint256 cTokens,
         bool isActive
     );
@@ -72,12 +66,10 @@ contract Investments is ReentrancyGuard, Ownable {
         uint256 rdId,
         address owner,
         string name,
-        string _type, 
         uint256 startDate,
         uint256 endDate,
         uint256 amount,
         uint256 redeemedAmount,
-        uint256 sip,
         uint256 frequency,
         address currency,
         uint256 cTokens,
@@ -89,7 +81,7 @@ contract Investments is ReentrancyGuard, Ownable {
     mapping(uint => RD) Rds;
     mapping(address => uint) usersRds;
 
-    function makeFd(string memory _name, string memory _type, uint256 duration) public payable {
+    function makeFd(string memory _name, uint256 duration) public payable {
        require(msg.value >= 0.01 ether, "Minimum deposit amount is 0.01 Eth");
        fdIds.increment();
        uint currentId = fdIds.current();
@@ -104,10 +96,10 @@ contract Investments is ReentrancyGuard, Ownable {
 
         uint256 cEthUser = cEthAfterMint - cEthBeforeMint;
 
-       Fds[currentId] = FD(currentId, payable(msg.sender), _name, _type, startDate, endDate, msg.value, 0, address(0), duration, cEthUser, true); 
+       Fds[currentId] = FD(currentId, payable(msg.sender), _name, startDate, endDate, msg.value, 0, address(0), cEthUser, true); 
        usersFds[msg.sender] = currentId;
 
-       emit FdCreated(currentId, msg.sender, _name, _type, startDate, endDate, msg.value, 0, address(0), duration, cEthUser, true); 
+       emit FdCreated(currentId, msg.sender, _name, startDate, endDate, msg.value, 0, address(0), cEthUser, true); 
     }
 
     function getFdBalanceWithInterest(uint256 fdId)
@@ -139,7 +131,7 @@ contract Investments is ReentrancyGuard, Ownable {
 
         address payable transferTo = payable(fd.owner); // get payable to transfer towards
         ceth.redeem(fd.cTokens); // Redeem that cETH
-        uint256 amountToWithdraw = getEthBalanceWithInterest(fd.cTokens); // Avalaible amount of $ that can be Withdrawn
+        uint256 amountToWithdraw = getFdBalanceWithInterest(fd.cTokens); // Avalaible amount of $ that can be Withdrawn
         // totalContractBalance -= userAccounts[msg.sender][index].balance;
         fd.cTokens = 0;
         fd.isActive = false;
@@ -147,7 +139,7 @@ contract Investments is ReentrancyGuard, Ownable {
         emit FdRedeemd(fdId, amountToWithdraw);
     }
 
-    function makeRd(string memory _name, string memory _type, uint256 startDate, uint256 endDate, uint256 sip, uint256 frequency) public payable {
+    function makeRd(string memory _name, uint256 startDate, uint256 endDate, uint256 frequency) public payable {
        require(msg.value >= 0.01 ether, "Minimum deposit amount is 0.01 Eth");
        rdIds.increment();
        uint currentId = rdIds.current();
@@ -160,9 +152,17 @@ contract Investments is ReentrancyGuard, Ownable {
 
         uint256 cEthUser = cEthAfterMint - cEthBeforeMint;
 
-       Rds[currentId] = RD(currentId, payable(msg.sender), _name, _type, startDate, endDate, 0, 0, sip, frequency, address(0), cEthUser, true); 
+       Rds[currentId] = RD(currentId, payable(msg.sender), _name, startDate, endDate, 0, 0, frequency, address(0), cEthUser, true); 
        usersRds[msg.sender] = currentId;
 
-       emit RdCreated(currentId, msg.sender, _name, _type, startDate, endDate, 0, 0, sip, frequency, address(0), cEthUser, true); 
+       emit RdCreated(currentId, msg.sender, _name, startDate, endDate, 0, 0, frequency, address(0), cEthUser, true); 
+    }
+
+    function redeemMaturedFds() public {
+        for(uint i = 1; i <= fdIds.current(); i++){
+            if(Fds[i].endDate <= block.timestamp){
+                redeemFd(i);
+            }
+        }
     }
 }

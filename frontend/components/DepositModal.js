@@ -16,9 +16,19 @@ import CryptoDropdown from "./CryptoDropdown";
 import { getUsdPrice } from "../hooks/useChainlink";
 
 const DepositModal = ({ address, accountNumber }) => {
-  const { isAuthenticated, Moralis } = useMoralis();
+  const { isAuthenticated, Moralis, chainId } = useMoralis();
   const { createAccount, isLoading, depositEthToAccount, depositERC20ToAccount } = useContext(AccountContext);
-  const [selected, setSelected] = useState(cryptos[0]);
+  
+  // let cryptos["0x13881"] = [];
+  // if(chainId == 0x13881){
+  //   cryptos["0x13881"] = cryptos;
+  // }else if(chainId == 0x3){
+  //   cryptos["0x13881"] = cryptos_polygon;
+  // }else {
+  //   cryptos["0x13881"] = cryptos;
+  // }
+
+  const [selected, setSelected] = useState(cryptos["0x13881"][0]);
   const [usdPrice, setUsdPrice] = useState(0.0);
   const [unitPrice, setUnitPrice] = useState(0.0);
   let [isOpen, setIsOpen] = useState(false);
@@ -32,12 +42,12 @@ const DepositModal = ({ address, accountNumber }) => {
   }
 
   useEffect(()=>{
-    console.log("crypto",cryptos[0])
-    getUsdPrice(cryptos[0].priceAddress).then((price)=>{
+    console.log("crypto",cryptos["0x13881"][0])
+    getUsdPrice(cryptos["0x13881"][0].priceAddress).then((price)=>{
       setUnitPrice(price)
       console.log("Price", price)
     })
-  },[cryptos[0].priceAddress])
+  },[cryptos["0x13881"][0].priceAddress])
 
   const [form, setForm] = useState({
     address: address,
@@ -55,7 +65,7 @@ const DepositModal = ({ address, accountNumber }) => {
     e.preventDefault();
     console.log("Form:", form);
     console.log("Selected:", selected);
-    if(selected.symbol == "ETH"){
+    if(selected.symbol == "MATIC"){
       depositEthToAccount(form.address, form.accountNumber, form.amount);
     } else {
       depositERC20ToAccount(form.address, form.accountNumber, form.amount, selected)
@@ -123,9 +133,11 @@ const DepositModal = ({ address, accountNumber }) => {
                       <IoClose />
                     </button>
                   </Dialog.Title>
-                  <div className={`mt-2 ${ selected.symbol !== 'ETH' ? 'relative' : ''}`}>
-                  {
-                    selected.symbol !== 'ETH' && 
+                  <div className={`mt-2 ${ 
+                    selected.symbol !== 'MATIC' ? '' : ''
+                  }`}>
+                  {/* {
+                    selected.symbol !== 'MATIC' && 
                     <div className="bg-gray-500 bg-opacity-80 rounded-lg absolute flex flex-col w-full h-full justify-center items-center text-white">
                     <Image
                             alt={selected.name}
@@ -137,7 +149,7 @@ const DepositModal = ({ address, accountNumber }) => {
                         />
                         <p className="text-lg text-center mx-2">We're currently not supporting {selected.name} deposits</p>
                     </div>
-                  }
+                  } */}
                     <form onSubmit={handleFormSubmit}>
                       <div className="flex flex-col bg-gray-50 rounded-lg">
                       <p className="text-sm ml-2 mt-2 uppercase text-gray-500">Deposit</p>

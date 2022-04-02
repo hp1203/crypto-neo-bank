@@ -15,7 +15,7 @@ import {PAYMENT_ADDRESS} from "../constants"
 import PaymentABI from "../artifacts/Payments.sol/Payments.json";
 import { ethers } from "ethers";
 const CreatePaymentLink = (props) => {
-  const { isAuthenticated, Moralis } = useMoralis();
+  const { isAuthenticated, Moralis, chainId } = useMoralis();
   const [type, setType] = useState('WALLET');
   const [isLoading, setIsLoading] = useState(false);
   let [isOpen, setIsOpen] = useState(false);
@@ -70,7 +70,7 @@ const CreatePaymentLink = (props) => {
       // const provider = getProviderOrSigner();
       // console.log("signer", walletConnected)
       const paymentContract = new ethers.Contract(
-        PAYMENT_ADDRESS,
+        PAYMENT_ADDRESS["0x13881"],
         PaymentABI.abi,
         signer
       );

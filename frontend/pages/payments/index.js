@@ -24,11 +24,13 @@ import { utils } from "ethers";
 import moment from "moment";
 import ListItem from "../../components/UI/ListItem";
 import { FiExternalLink } from "react-icons/fi";
+import { useMoralis } from "react-moralis";
 
 const Payments = () => {
   const { account } = useContext(AuthContext);
   const [paymentLinks, setPaymentLinks] = useState([]);
   const [payments, setPayments] = useState([]);
+  const { chainId } = useMoralis()
   const APIURL = "https://api.thegraph.com/subgraphs/name/hp1203/cryptoneo";
   console.log("Acc", account);
   const query = `
@@ -117,7 +119,7 @@ const Payments = () => {
                         <TableCol>{payment.paymentId}</TableCol>
                         <TableCol>{payment.mode}</TableCol>
                         {/* <TableCol>{
-                                cryptos.filter(crypto => crypto.address == payment.token).name
+                                cryptos["0x13881"].filter(crypto => crypto.address == payment.token).name
                             }</TableCol> */}
                         <TableCol>{getEllipsisTxt(payment.sender, 6)}</TableCol>
                         <TableCol>{payment.account}</TableCol>
@@ -126,7 +128,7 @@ const Payments = () => {
                             ? utils.formatEther(payment.amount.toString())
                             : 0.0}{" "}
                           {
-                            cryptos.filter(
+                            cryptos["0x13881"].filter(
                               (crypto) => crypto.address == payment.currency
                             ).symbol
                           }
@@ -134,7 +136,7 @@ const Payments = () => {
                         <TableCol>
                           {utils.formatEther(payment.fee.toString())}{" "}
                           {
-                            cryptos.filter(
+                            cryptos["0x13881"].filter(
                               (crypto) =>
                                 crypto.address == payment.currency.toString()
                             ).symbol

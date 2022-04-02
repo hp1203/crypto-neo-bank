@@ -98,7 +98,7 @@ export default function ProfileDropdown({ user, account, logout }) {
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
-              <Dialog.Overlay className="fixed inset-0" />
+              <Dialog.Overlay className="fixed bg-gray-900 bg-opacity-20 inset-0" />
             </Transition.Child>
 
             {/* This element is to trick the browser into centering the modal contents. */}

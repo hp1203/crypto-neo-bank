@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-export const getUsdPrice = async (address) => {
+export const getUsdPrice = async (address, network = 0x13881) => {
   const aggregatorV3InterfaceABI = [
     {
       inputs: [],
@@ -51,10 +51,18 @@ export const getUsdPrice = async (address) => {
     },
   ];
   console.log("Address1", address);
-  const provider = new ethers.providers.JsonRpcProvider(
-    "https://kovan.infura.io/v3/763bfe192ef9400db7a56b58141775d8"
-  );
-  console.log()
+  // const provider = new ethers.providers.JsonRpcProvider(
+  //   "https://kovan.infura.io/v3/763bfe192ef9400db7a56b58141775d8"
+  // );
+  let url = "https://polygon-mumbai.g.alchemy.com/v2/8_L_Exg1aby8IVu0kQDY6p6o9abelhss";
+  if(network == 0x3) {
+    url = "https://kovan.infura.io/v3/763bfe192ef9400db7a56b58141775d8"
+  }else if(network == 0x13881) {
+    url = "https://polygon-mumbai.g.alchemy.com/v2/8_L_Exg1aby8IVu0kQDY6p6o9abelhss"
+  }
+
+  console.log("URL",url)
+  const provider = new ethers.providers.JsonRpcProvider(url);
   // const addr = "0x9326BFA02ADD2366b30bacB125260Af641031331"
   const priceFeed = new ethers.Contract(
     address,
