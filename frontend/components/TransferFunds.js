@@ -64,9 +64,9 @@ const TransferFunds = ({ address, accountNumber }) => {
     });
   }, [cryptos[0].priceAddress]);
 
-  if(accounts.length <= 0){
-    return null;
-  }
+  // if(accounts.length <= 0){
+  //   return null;
+  // }
   
   const [form, setForm] = useState({
     address: "",

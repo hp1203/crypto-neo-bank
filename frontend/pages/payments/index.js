@@ -195,6 +195,7 @@ const Payments = () => {
                       <a
                         className="text-xs text-green-600"
                         target="_blank"
+                        rel="noreferrer"
                         href={`pay/${link.url}`}
                       >
                         <FiExternalLink className="text-base text-violet-500 cursor-pointer" />

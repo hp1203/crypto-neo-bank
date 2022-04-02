@@ -7,6 +7,7 @@ import ProfileDropdown from "./ProfileDropdown";
 import { AuthContext } from "../context/AuthContext";
 import Account from "./Account";
 import Button from "./UI/Button";
+import Link from "next/link";
 
 const Header = () => {
   // const { connectWallet, walletConnected } = useContext(WalletContext);
@@ -29,7 +30,7 @@ const Header = () => {
         {
           user ? (
 
-            <a href="/dashboard" className="nav-link flex bg-gray-200 items-center px-3 p-2 rounded-lg mr-0"><span>Dashboard</span><FaArrowRight className="ml-1 text-gray-400"/></a>
+            <Link passHref href="/dashboard" className="nav-link flex bg-gray-200 items-center px-3 p-2 rounded-lg mr-0"><span>Dashboard</span><FaArrowRight className="ml-1 text-gray-400"/></Link>
           ) : (
           <Account/>
           )
