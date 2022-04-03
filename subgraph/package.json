@@ -1,0 +1,16 @@
+{
+  "name": "neobank-subgraph",
+  "license": "UNLICENSED",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ hp1203/cryptoneo",
+    "create-local": "graph create --node http://localhost:8020/ hp1203/cryptoneo",
+    "remove-local": "graph remove --node http://localhost:8020/ hp1203/cryptoneo",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 hp1203/cryptoneo"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.28.0",
+    "@graphprotocol/graph-ts": "0.26.0"
+  }
+}

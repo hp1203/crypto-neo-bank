@@ -1,0 +1,82 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Neobank
+    network: mumbai
+    source:
+      address: "0xAdE9d003Db8d1bF99eEF9209D3770a7632C11315"
+      abi: Neobank
+      startBlock: 25746703 
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - AccountCreated
+        # - CompoundTokenAdded
+        - Erc20DepositMade
+        - EthDepositMade
+        - OwnershipTransferred
+      abis:
+        - name: Neobank
+          file: ./abis/Neobank.json
+      eventHandlers:
+        - event: AccountCreated(address,uint256,string)
+          handler: handleAccountCreated
+        - event: Erc20DepositMade(address,address,uint256,address,uint256,uint256)
+          handler: handleErc20DepositMade
+        - event: EthDepositMade(address,address,uint256,uint256,uint256)
+          handler: handleEthDepositMade
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+      file: ./src/mapping.ts
+  - kind: ethereum
+    name: Payments
+    network: mumbai
+    source:
+      address: "0x87C818876C1aA022596b0ef2e74ED8DB6AfcB69C"
+      abi: Payments
+      startBlock: 25755215
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - PaymentLinkCreated
+        - PaymentMade
+      abis:
+        - name: Payments
+          file: ./abis/Payments.json
+      eventHandlers:
+        - event: PaymentLinkCreated(address,uint256,string,string,address,uint256,string)
+          handler: handlePaymentLinkCreated
+        - event: PaymentMade(uint256,string,address,address,uint256,uint256,uint256,uint256,address)
+          handler: handlePaymentMade
+      file: ./src/mapping.ts
+  - kind: ethereum
+    name: Investments
+    network: mumbai
+    source:
+      address: "0x3fb57D67e49A5ec3729788B0e675e0D879449198"
+      abi: Investments
+      startBlock: 25783120
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - PaymentLinkCreated
+        - PaymentMade
+      abis:
+        - name: Investments
+          file: ./abis/Investments.json
+      eventHandlers:
+        - event: FdRedeemd(uint256,uint256)
+          handler: handledRedeemed
+        - event: FdCreated(uint256,address,string,uint256,uint256,uint256,uint256,address,uint256,bool)
+          handler: handleFdCreated
+        - event: RdCreated(uint256,address,string,uint256,uint256,uint256,uint256,uint256,address,uint256,bool)
+          handler: handleRdCreated
+      file: ./src/mapping.ts

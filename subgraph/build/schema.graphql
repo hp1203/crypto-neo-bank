@@ -1,0 +1,85 @@
+type Account @entity {
+  id: ID!
+  accountNumber: BigInt! # uint256
+  metadata: String!
+  owner: Bytes! # address
+  timestamp: BigInt!
+}
+
+type Token @entity {
+  id: ID!
+  name: String!
+  decimal: BigInt!
+  symbol: String!
+  address: Bytes! #address
+  cToken: Bytes! #address
+  icon: String!
+}
+
+type Transaction @entity {
+  id: ID!
+  currency: String!
+  token: Bytes!
+  depositor: Bytes! #address
+  owner: Bytes! #address
+  accountNumber: BigInt! # uint256
+  amount: BigInt! # uint256
+  timestamp: BigInt! # uint256
+}
+
+type PaymentLink @entity {
+  id: ID!
+  owner: Bytes!
+  paymentLinkId: BigInt!
+  url: String!
+  type: String!
+  receiver: Bytes!
+  account: BigInt!
+  metadata: String!
+  timestamp: BigInt!
+}
+
+type Payment @entity {
+  id: ID!
+  paymentId: BigInt!
+  mode: String!
+  sender: Bytes!
+  receiver: Bytes!
+  account: BigInt!
+  fee: BigInt!
+  currency: Bytes!
+  timestamp: BigInt!
+}
+
+type Fd @entity {
+  id: ID!
+  fdId: BigInt!
+  owner:  Bytes!
+  name: String!
+  startDate: BigInt!
+  endDate: BigInt!
+  amount: BigInt!
+  redeemedAmount: BigInt!
+  currency: Bytes!
+  cTokens: BigInt!
+  isActive: Boolean!
+  timestamp: BigInt!
+}
+
+type Rd @entity {
+  id: ID!
+  rdId: BigInt!
+  owner:  Bytes!
+  name: String!
+  startDate: BigInt!
+  endDate: BigInt!
+  amount: BigInt!
+  redeemedAmount: BigInt!
+  frequency: BigInt!
+  currency: Bytes!
+  cTokens: BigInt!
+  isActive: Boolean!
+  timestamp: BigInt!
+}
+
+
