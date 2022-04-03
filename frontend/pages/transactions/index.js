@@ -113,7 +113,8 @@ const Transactions = () => {
                   <TableCol>{transaction.accountNumber}</TableCol>
                   <TableCol>
                     {utils.formatEther(transaction.amount)}{" "}
-                    {transaction.currency}
+                    {/* {transaction.currency} */}
+                    {cryptos["0x13881"][0].symbol}
                   </TableCol>
                   <TableCol>
                     {moment.unix(transaction.timestamp).toString()}

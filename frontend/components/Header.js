@@ -30,7 +30,7 @@ const Header = () => {
         {
           user ? (
 
-            <Link passHref href="/dashboard" className="nav-link flex bg-gray-200 items-center px-3 p-2 rounded-lg mr-0"><span>Dashboard</span><FaArrowRight className="ml-1 text-gray-400"/></Link>
+            <Link passHref href="/dashboard" className="nav-link flex bg-gray-200 items-center px-3 p-2 rounded-lg mr-0"><div className="flex bg-gray-200 items-center px-3 p-2 rounded-lg mr-0"><span>Dashboard</span><FaArrowRight className="ml-1 text-gray-400"/></div></Link>
           ) : (
           <Account/>
           )

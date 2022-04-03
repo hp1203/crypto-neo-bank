@@ -87,7 +87,7 @@ export const AccountTransactions = (props) => {
                   <TableCol>{transaction.currency}</TableCol>
                   <TableCol>
                     {
-                      cryptos.filter(
+                      cryptos["0x13881"].filter(
                         (crypto) => crypto.address == transaction.token
                       ).name
                     }

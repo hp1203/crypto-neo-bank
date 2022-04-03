@@ -13,7 +13,7 @@ import ImageInput from "./UI/ImageInput";
 import CryptoDropdown from "../components/CryptoDropdown"
 
 import {INVESTMENT_ADDRESS, PAYMENT_ADDRESS} from "../constants"
-import InvestmentABI from "../artifacts/Invetments.sol/Investments.json";
+import InvestmentABI from "../artifacts/InvetmentsPolygon.sol/InvestmentsPolygon.json";
 import { ethers, utils } from "ethers";
 import { cryptos } from "../constants/cryptos";
 const CreateFd = (props) => {
@@ -53,13 +53,13 @@ const CreateFd = (props) => {
       // const provider = getProviderOrSigner();
       // console.log("signer", walletConnected)
       const InvestmentContract = new ethers.Contract(
-        INVESTMENT_ADDRESS,
+        INVESTMENT_ADDRESS["0x13881"],
         InvestmentABI.abi,
         signer
       );
       console.log("Contract", InvestmentContract)
 
-      const txHash = await InvestmentContract.connect(signer).makeFd(formData.name, duration,  { value: utils.parseEther(formData.amount) });
+      const txHash = await InvestmentContract.connect(signer).makeFd(formData.name, duration.toString(),  { value: utils.parseEther(formData.amount) });
 
       setIsLoading(true);
       console.log(`Loading - ${txHash.hash}`);

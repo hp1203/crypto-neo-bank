@@ -21,13 +21,18 @@ import CreateFd from "../../components/CreateFd";
 import { createClient } from "urql";
 
 import ListItem from "../../components/UI/ListItem";
-import { utils } from "ethers";
+import { ethers, utils } from "ethers";
 import { useMoralis } from "react-moralis";
+import { cryptos } from "../../constants/cryptos";
+import { INVESTMENT_ADDRESS } from "../../constants";
+
+import InvestmentABI from "../../artifacts/InvetmentsPolygon.sol/InvestmentsPolygon.json";
 
 const Investments = () => {
   const { account } = useContext(AuthContext)
-  const {chainId} = useMoralis();
+  const {chainId, Moralis} = useMoralis();
   const [fds, setFds] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const APIURL = "https://api.thegraph.com/subgraphs/name/hp1203/cryptoneo";
   console.log("Acc", account);
   const query = `
@@ -56,6 +61,39 @@ const Investments = () => {
   const client = createClient({
     url: APIURL,
   });
+
+  const redeemFd = async (fd) => {
+    setIsLoading(true);
+    
+    try {
+      const provider = await Moralis.enableWeb3();
+      // if(provider) {
+      // const provider = new ethers.providers.Web3Provider(web3Provider);
+      const signer = provider.getSigner();
+      // const provider = getProviderOrSigner();
+      // console.log("signer", walletConnected)
+      const InvestmentContract = new ethers.Contract(
+        INVESTMENT_ADDRESS["0x13881"],
+        InvestmentABI.abi,
+        signer
+      );
+      console.log("Contract", InvestmentContract)
+
+      const txHash = await InvestmentContract.redeemFd(fd.toString());
+
+      setIsLoading(true);
+      console.log(`Loading - ${txHash.hash}`);
+      await txHash.wait();
+      setIsLoading(false);
+      console.log(`Success - ${txHash.hash}`);
+      // closeModal()
+      props.fetchData();
+      // }
+      // loadWeb3Modal()
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const fetchData = async () => {
     const response = await client.query(query).toPromise();
@@ -112,9 +150,10 @@ const Investments = () => {
                   subTitle={`Matures ${moment.unix(fd.endDate).fromNow()}`}
                   key={index}
                   left={
-                    <div className="flex flex-col items-end">
-                    <p className=" font-medium">{parseFloat(utils.formatEther(fd.amount)).toFixed(2)} ETH</p>
+                    <div className="flex flex-col items-end space-y-1">
+                    <p className=" font-medium">{parseFloat(utils.formatEther(fd.amount)).toFixed(2)} {cryptos["0x13881"][0].symbol}</p>
                     {/* <p className="text-xs text-green-600">APY: {parseFloat(crypto.apy).toFixed(2)} {crypto.symbol}</p> */}
+                    {/* <Button title="Redeem Now" className="text-xs" primary onClick={() => redeemFd(fd.fdId)}/> */}
                   </div>
                   }
                 />
