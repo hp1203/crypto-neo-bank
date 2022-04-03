@@ -23,7 +23,7 @@ import toast from "react-hot-toast";
 import Button from "../../components/UI/Button";
 import axios from "axios";
 const people = [
-  { id: 1, name: "ETH", icon: "https://downloads.coindesk.com/arc-hosted-images/eth.png" },
+  { id: 1, name: "MATIC", icon: "https://downloads.coindesk.com/arc-hosted-images/polygon.png" },
   // { id: 2, name: "LINK", icon:"https://etherscan.io/token/images/chainlinktoken_32.png?v=6" },
   // { id: 3, name: "USDT", icon:"https://etherscan.io/token/images/tether_32.png" },
   // { id: 4, name: "DAI", icon:"https://etherscan.io/token/images/MCDDai_32.png" },

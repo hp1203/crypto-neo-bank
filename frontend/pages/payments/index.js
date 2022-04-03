@@ -38,7 +38,7 @@ const Payments = () => {
         paymentLinks (
             orderBy: timestamp
             orderDirection: desc
-            where: { receiver: "${account}" }
+            where: { owner: "${account}" }
         ) {
           id
           owner
