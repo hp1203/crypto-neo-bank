@@ -199,7 +199,7 @@ const Pay = () => {
       // const provider = getProviderOrSigner();
       // console.log("signer", walletConnected)
       const paymentContract = new ethers.Contract(
-        PAYMENT_ADDRESS,
+        PAYMENT_ADDRESS["0x13881"],
         PaymentABI.abi,
         signer
       );
